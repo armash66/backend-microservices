@@ -2,6 +2,7 @@ const amqp = require('amqplib');
 const taskModel = require('../models/taskModel');
 const { logger } = require('../utils/logger');
 const { invalidateCache } = require('../cache/redis');
+const { eventConsumeCounter } = require('../utils/metrics');
 
 let channel = null;
 
@@ -41,6 +42,7 @@ const connectRabbitMQ = async () => {
 
                     // Acknowledge the message only after successfully deleting the tasks
                     channel.ack(msg);
+                    eventConsumeCounter.inc({ routing_key: 'user.deleted' });
                 } catch (error) {
                     logger.error({ err: error, userId }, 'Failed to process user.deleted event');
                     // Decide whether to nack or requeue depending on failure strategy

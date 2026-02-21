@@ -1,5 +1,6 @@
 const amqp = require('amqplib');
 const { logger } = require('../utils/logger');
+const { eventPublishCounter } = require('../utils/metrics');
 
 let channel = null;
 
@@ -30,6 +31,8 @@ const publishEvent = async (routingKey, payload) => {
         // Persistent messages so they are saved to disk in RabbitMQ
         channel.publish('user.events', routingKey, message, { persistent: true });
         logger.info({ routingKey }, 'Published event');
+
+        eventPublishCounter.inc({ routing_key: routingKey });
     } catch (error) {
         logger.error({ err: error, routingKey }, 'Error publishing event');
     }

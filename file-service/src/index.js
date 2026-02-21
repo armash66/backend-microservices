@@ -22,12 +22,14 @@ const { connectRabbitMQ } = require('./events/rabbit');
 connectRabbitMQ();
 
 const { logger, httpLogger } = require('./utils/logger');
+const { register, metricsMiddleware } = require('./utils/metrics');
 
 const app = express();
 const PORT = process.env.PORT || 3003;
 
 // Middleware
 app.use(httpLogger);
+app.use(metricsMiddleware);
 app.use(cors());
 app.use(express.json());
 
@@ -37,6 +39,11 @@ app.use('/files', fileRoutes);
 // Health check endpoint
 app.get('/health', (req, res) => {
     res.status(200).json({ status: 'ok', service: 'file-service' });
+});
+
+app.get('/metrics', async (req, res) => {
+    res.set('Content-Type', register.contentType);
+    res.end(await register.metrics());
 });
 
 // Start Server

@@ -1,5 +1,6 @@
 const Redis = require('ioredis');
 const { logger } = require('../utils/logger');
+const { cacheHitsCounter, cacheMissesCounter } = require('../utils/metrics');
 
 // Initialize Redis directly targeting the docker-compose hostname
 // If REDIS_URL isn't set (e.g., running raw locally), it falls back to standard localhost mapping
@@ -30,9 +31,11 @@ const getCache = async (key) => {
         const data = await redis.get(key);
         if (data) {
             logger.info({ key, action: 'HIT' }, 'Cache returned data directly');
+            cacheHitsCounter.inc();
             return JSON.parse(data);
         }
         logger.info({ key, action: 'MISS' }, 'Cache miss - Routing to truth DB');
+        cacheMissesCounter.inc();
         return null;
     } catch (error) {
         logger.error({ err: error, key }, 'Failed to retrieve cache block');

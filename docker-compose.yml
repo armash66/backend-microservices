@@ -47,6 +47,21 @@ services:
       timeout: 5s
       retries: 5
 
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus_metrics
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+    networks:
+      - microservices_network
+    depends_on:
+      - api-gateway
+      - auth-service
+      - task-service
+      - file-service
+
   auth-service:
     build: ./auth-service
     container_name: auth_service

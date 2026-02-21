@@ -4,6 +4,7 @@ const { createProxyMiddleware } = require('http-proxy-middleware');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const { logger, httpLogger } = require('./utils/logger');
+const { register, metricsMiddleware } = require('./utils/metrics');
 
 dotenv.config();
 
@@ -37,6 +38,7 @@ app.use(cors({
     credentials: true
 }));
 app.use(httpLogger);
+app.use(metricsMiddleware);
 
 // Setup global JWT validation (Requirement: "Validate JWT before forwarding")
 // We apply this to all incoming proxy requests.
@@ -66,6 +68,12 @@ for (const [route, target] of Object.entries(services)) {
         }
     }));
 }
+
+// Global Metrics probe
+app.get('/metrics', async (req, res) => {
+    res.set('Content-Type', register.contentType);
+    res.end(await register.metrics());
+});
 
 // Global 404
 app.use('*', (req, res) => {

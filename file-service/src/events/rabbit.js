@@ -3,6 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const fileModel = require('../models/fileModel');
 const { logger } = require('../utils/logger');
+const { eventConsumeCounter } = require('../utils/metrics');
 
 let channel = null;
 
@@ -39,6 +40,7 @@ const connectRabbitMQ = async () => {
                     }
 
                     channel.ack(msg);
+                    eventConsumeCounter.inc({ routing_key: 'user.deleted' });
                 } catch (error) {
                     logger.error({ err: error, userId }, 'Failed to process user.deleted event');
                 }

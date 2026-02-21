@@ -1,20 +1,28 @@
 const request = require('supertest');
 const app = require('../src/index');
 
-// A simple integration test checking if the app boots up properly
-describe('Auth Service Internal Integration', () => {
+jest.mock('../src/config/db', () => ({
+    query: jest.fn(),
+    closePool: jest.fn()
+}));
 
-    // We mock the RabbitMQ and DB connection for unit/integration isolation
-    // if we don't want the tests instantly crashing without Postgres running locally.
-    // However, since we're using real DB logic, this simple test just targets a harmless endpoint!
+jest.mock('../src/events/rabbit', () => ({
+    connectRabbitMQ: jest.fn(),
+    closeRabbitMQ: jest.fn(),
+    publishEvent: jest.fn()
+}));
 
-    it('Should correctly return 200 on the health probe', async () => {
-        const res = await request(app).get('/health');
+describe('Auth Service Health Checks', () => {
+    it('should return 200 on /health/live', async () => {
+        const res = await request(app).get('/health/live');
         expect(res.status).toBe(200);
+        expect(res.body.status).toBe('live');
         expect(res.body.service).toBe('auth-service');
-        expect(res.body.status).toBe('ok');
     });
 
-    // In a real isolated environment without the Gateway, we could
-    // write Supertest routes mimicking POST /auth/login locally here.
+    it('should return 200 on /health/ready', async () => {
+        const res = await request(app).get('/health/ready');
+        expect(res.status).toBe(200);
+        expect(res.body.status).toBe('ready');
+    });
 });

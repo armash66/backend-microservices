@@ -6,7 +6,7 @@ const rateLimit = require('express-rate-limit');
 const { logger, httpLogger } = require('./utils/logger');
 const { register, metricsMiddleware } = require('./utils/metrics');
 
-dotenv.config();
+require('dotenv').config();
 
 const authMiddleware = require('./middleware/authMiddleware');
 

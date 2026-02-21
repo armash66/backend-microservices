@@ -24,8 +24,19 @@ const limiter = rateLimit({
 });
 app.use(limiter);
 
+// Strict limit for login route to prevent credential stuffing/brute force
+const loginLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 10,
+    message: { error: 'API Gateway: Too many login attempts from this IP, please try again later.' }
+});
+app.use('/auth/login', loginLimiter);
+
 // Setup CORS and Logging
-app.use(cors());
+app.use(cors({
+    origin: "http://localhost:3000", // Update with your actual frontend URL later
+    credentials: true
+}));
 app.use(morgan('dev'));
 
 // Setup global JWT validation (Requirement: "Validate JWT before forwarding")

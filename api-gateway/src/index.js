@@ -3,6 +3,8 @@ const cors = require('cors');
 const morgan = require('morgan');
 const dotenv = require('dotenv');
 const { createProxyMiddleware } = require('http-proxy-middleware');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
 
 dotenv.config();
 
@@ -10,6 +12,17 @@ const authMiddleware = require('./middleware/authMiddleware');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// Setup Security Headers
+app.use(helmet());
+
+// Setup Rate Limiting (Global limit to prevent DDoS or brute force)
+const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes window
+    max: 100, // limit each IP to 100 requests per windowMs
+    message: { error: 'API Gateway: Too many requests from this IP, please try again later.' }
+});
+app.use(limiter);
 
 // Setup CORS and Logging
 app.use(cors());
@@ -42,6 +55,15 @@ for (const [route, target] of Object.entries(services)) {
 // Global 404
 app.use('*', (req, res) => {
     res.status(404).json({ error: 'API Gateway: Route not found' });
+});
+
+// Centralized Error Handler
+app.use((err, req, res, next) => {
+    console.error('Gateway Error:', err.stack);
+    res.status(err.status || 500).json({
+        error: 'API Gateway: Internal Server Error',
+        message: process.env.NODE_ENV === 'development' ? err.message : undefined
+    });
 });
 
 // Start Gateway

@@ -1,0 +1,72 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test-auth-service:
+    name: Auth Service Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        working-directory: ./auth-service
+        run: npm ci
+
+      - name: Run tests
+        working-directory: ./auth-service
+        env:
+          JWT_SECRET: test_secret_key
+        run: npm test
+
+  test-task-service:
+    name: Task Service Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        working-directory: ./task-service
+        run: npm ci
+
+      - name: Run tests
+        working-directory: ./task-service
+        env:
+          JWT_SECRET: test_secret_key
+        run: npm test
+
+  build-images:
+    name: Build Docker Images
+    runs-on: ubuntu-latest
+    needs: [test-auth-service, test-task-service]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build auth-service
+        run: docker build -t auth-service ./auth-service
+
+      - name: Build task-service
+        run: docker build -t task-service ./task-service
+
+      - name: Build file-service
+        run: docker build -t file-service ./file-service
+
+      - name: Build api-gateway
+        run: docker build -t api-gateway ./api-gateway
+
+      - name: Verify all images built
+        run: docker images | grep -E "auth-service|task-service|file-service|api-gateway"

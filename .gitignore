@@ -3,6 +3,8 @@ node_modules/
 
 # Environment variables
 .env
+.env.production
+.env.local
 
 # Uploads directory
 uploads/
@@ -11,3 +13,10 @@ file-service/uploads/
 # OS generated files
 .DS_Store
 Thumbs.db
+
+# Debug/temp files
+*.tmp
+*.log
+
+# Grafana persistent data
+grafana_data/

@@ -4,4 +4,4 @@ COPY package*.json ./
 RUN npm install --production
 COPY . .
 EXPOSE 3002
-CMD ["node", "src/index.js"]
+CMD ["sh", "-c", "npm run migrate up && node src/index.js"]

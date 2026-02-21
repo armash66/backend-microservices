@@ -6,4 +6,4 @@ COPY . .
 # Ensure uploads directory exists inside container just in case
 RUN mkdir -p /app/uploads
 EXPOSE 3003
-CMD ["node", "src/index.js"]
+CMD ["sh", "-c", "npm run migrate up && node src/index.js"]

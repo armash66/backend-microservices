@@ -1,10 +1,9 @@
 const express = require('express');
 const cors = require('cors');
-const morgan = require('morgan');
-const dotenv = require('dotenv');
 const { createProxyMiddleware } = require('http-proxy-middleware');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
+const { logger, httpLogger } = require('./utils/logger');
 
 dotenv.config();
 
@@ -37,7 +36,7 @@ app.use(cors({
     origin: "http://localhost:3000", // Update with your actual frontend URL later
     credentials: true
 }));
-app.use(morgan('dev'));
+app.use(httpLogger);
 
 // Setup global JWT validation (Requirement: "Validate JWT before forwarding")
 // We apply this to all incoming proxy requests.
@@ -55,9 +54,14 @@ for (const [route, target] of Object.entries(services)) {
     app.use(route, createProxyMiddleware({
         target,
         changeOrigin: true,
+        onProxyReq: (proxyReq, req, res) => {
+            if (req.id) {
+                proxyReq.setHeader('x-request-id', req.id);
+            }
+        },
         // Error handling if a downstream service is down
         onError: (err, req, res) => {
-            console.error(`Error communicating with ${route} service:`, err.message);
+            logger.error(`Error communicating with ${route} service: ${err.message}`);
             res.status(502).json({ error: 'Bad Gateway - Service is down' });
         }
     }));
@@ -70,7 +74,7 @@ app.use('*', (req, res) => {
 
 // Centralized Error Handler
 app.use((err, req, res, next) => {
-    console.error('Gateway Error:', err.stack);
+    logger.error({ err }, 'Gateway Error');
     res.status(err.status || 500).json({
         error: 'API Gateway: Internal Server Error',
         message: process.env.NODE_ENV === 'development' ? err.message : undefined
@@ -79,5 +83,5 @@ app.use((err, req, res, next) => {
 
 // Start Gateway
 app.listen(PORT, () => {
-    console.log(`API Gateway running on port ${PORT}`);
+    logger.info(`API Gateway running on port ${PORT}`);
 });

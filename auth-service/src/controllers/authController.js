@@ -2,6 +2,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const userModel = require('../models/userModel');
 const { publishEvent } = require('../events/rabbit');
+const { logger } = require('../utils/logger');
 
 const register = async (req, res) => {
     try {
@@ -34,7 +35,7 @@ const register = async (req, res) => {
         });
 
     } catch (error) {
-        console.error('Registration Error:', error);
+        logger.error({ err: error }, 'Registration Error');
         return res.status(500).json({ error: 'Internal server error' });
     }
 };
@@ -74,7 +75,7 @@ const login = async (req, res) => {
         });
 
     } catch (error) {
-        console.error('Login Error:', error);
+        logger.error({ err: error }, 'Login Error');
         return res.status(500).json({ error: 'Internal server error' });
     }
 };
@@ -95,7 +96,7 @@ const deleteAccount = async (req, res) => {
 
         return res.status(200).json({ message: 'Account deleted out successfully' });
     } catch (error) {
-        console.error('Delete Account Error:', error);
+        logger.error({ err: error, userId: req.user?.userId }, 'Delete Account Error');
         return res.status(500).json({ error: 'Internal server error' });
     }
 };

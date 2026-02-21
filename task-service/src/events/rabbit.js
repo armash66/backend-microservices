@@ -1,5 +1,6 @@
 const amqp = require('amqplib');
 const taskModel = require('../models/taskModel');
+const { logger } = require('../utils/logger');
 
 let channel = null;
 
@@ -18,7 +19,7 @@ const connectRabbitMQ = async () => {
         // Bind the queue to the exchange listening only for user.deleted
         await channel.bindQueue(q.queue, 'user.events', 'user.deleted');
 
-        console.log('Task Service: Connected to RabbitMQ and waiting for user.deleted events.');
+        logger.info('Task Service: Connected to RabbitMQ and waiting for user.deleted events.');
 
         // Consume Messages
         channel.consume(q.queue, async (msg) => {
@@ -27,13 +28,13 @@ const connectRabbitMQ = async () => {
                 const userId = payload.userId;
 
                 try {
-                    console.log(`Received user.deleted event for userId: ${userId}`);
+                    logger.info({ userId }, 'Received user.deleted event');
                     await taskModel.deleteTasksByUser(userId);
 
                     // Acknowledge the message only after successfully deleting the tasks
                     channel.ack(msg);
                 } catch (error) {
-                    console.error('Failed to process user.deleted event:', error);
+                    logger.error({ err: error, userId }, 'Failed to process user.deleted event');
                     // Decide whether to nack or requeue depending on failure strategy
                     // Here we won't requeue right away so it doesn't loop infinitely on hard failures
                 }
@@ -41,7 +42,7 @@ const connectRabbitMQ = async () => {
         }, { noAck: false }); // explicit acknowledgments
 
     } catch (error) {
-        console.error('RabbitMQ Connection Error:', error);
+        logger.error({ err: error }, 'RabbitMQ Connection Error');
         setTimeout(connectRabbitMQ, 5000);
     }
 };

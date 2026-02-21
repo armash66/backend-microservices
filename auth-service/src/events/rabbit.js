@@ -1,4 +1,5 @@
 const amqp = require('amqplib');
+const { logger } = require('../utils/logger');
 
 let channel = null;
 
@@ -21,16 +22,16 @@ const connectRabbitMQ = async () => {
 
 const publishEvent = async (routingKey, payload) => {
     if (!channel) {
-        console.error('RabbitMQ channel not established, cannot publish event');
+        logger.error({ routingKey }, 'RabbitMQ channel not established, cannot publish event');
         return;
     }
     try {
         const message = Buffer.from(JSON.stringify(payload));
         // Persistent messages so they are saved to disk in RabbitMQ
         channel.publish('user.events', routingKey, message, { persistent: true });
-        console.log(`Published event: ${routingKey}`);
+        logger.info({ routingKey }, 'Published event');
     } catch (error) {
-        console.error('Error publishing event:', error);
+        logger.error({ err: error, routingKey }, 'Error publishing event');
     }
 };
 

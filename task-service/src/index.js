@@ -13,10 +13,13 @@ const taskRoutes = require('./routes/taskRoutes');
 const { connectRabbitMQ } = require('./events/rabbit');
 connectRabbitMQ();
 
+const { logger, httpLogger } = require('./utils/logger');
+
 const app = express();
 const PORT = process.env.PORT || 3002;
 
 // Middleware
+app.use(httpLogger);
 app.use(cors());
 app.use(express.json());
 
@@ -31,7 +34,7 @@ app.get('/health', (req, res) => {
 // Start Server
 if (require.main === module) {
     app.listen(PORT, () => {
-        console.log(`Task Service running on port ${PORT}`);
+        logger.info(`Task Service running on port ${PORT}`);
     });
 }
 

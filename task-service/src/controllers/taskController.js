@@ -1,4 +1,5 @@
 const taskModel = require('../models/taskModel');
+const { logger } = require('../utils/logger');
 
 const createTask = async (req, res) => {
     try {
@@ -12,7 +13,7 @@ const createTask = async (req, res) => {
         const newTask = await taskModel.createTask(userId, title, description);
         return res.status(201).json(newTask);
     } catch (error) {
-        console.error('Create Task Error:', error);
+        logger.error({ err: error }, 'Create Task Error');
         return res.status(500).json({ error: 'Internal server error' });
     }
 };
@@ -23,7 +24,7 @@ const getTasks = async (req, res) => {
         const tasks = await taskModel.getTasksByUser(userId);
         return res.status(200).json(tasks);
     } catch (error) {
-        console.error('Get Tasks Error:', error);
+        logger.error({ err: error }, 'Get Tasks Error');
         return res.status(500).json({ error: 'Internal server error' });
     }
 };
@@ -42,7 +43,7 @@ const updateTask = async (req, res) => {
 
         return res.status(200).json(updatedTask);
     } catch (error) {
-        console.error('Update Task Error:', error);
+        logger.error({ err: error, taskId: req.params.id }, 'Update Task Error');
         return res.status(500).json({ error: 'Internal server error' });
     }
 };
@@ -60,7 +61,7 @@ const deleteTask = async (req, res) => {
 
         return res.status(200).json({ message: 'Task deleted successfully', task: deletedTask });
     } catch (error) {
-        console.error('Delete Task Error:', error);
+        logger.error({ err: error, taskId: req.params.id }, 'Delete Task Error');
         return res.status(500).json({ error: 'Internal server error' });
     }
 };

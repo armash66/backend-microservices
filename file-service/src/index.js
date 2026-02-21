@@ -21,10 +21,13 @@ const fileRoutes = require('./routes/fileRoutes');
 const { connectRabbitMQ } = require('./events/rabbit');
 connectRabbitMQ();
 
+const { logger, httpLogger } = require('./utils/logger');
+
 const app = express();
 const PORT = process.env.PORT || 3003;
 
 // Middleware
+app.use(httpLogger);
 app.use(cors());
 app.use(express.json());
 
@@ -39,7 +42,7 @@ app.get('/health', (req, res) => {
 // Start Server
 if (require.main === module) {
     app.listen(PORT, () => {
-        console.log(`File Service running on port ${PORT}`);
+        logger.info(`File Service running on port ${PORT}`);
     });
 }
 

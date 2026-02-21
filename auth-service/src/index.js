@@ -13,10 +13,13 @@ const authRoutes = require('./routes/authRoutes');
 const { connectRabbitMQ } = require('./events/rabbit');
 connectRabbitMQ();
 
+const { logger, httpLogger } = require('./utils/logger');
+
 const app = express();
 const PORT = process.env.PORT || 3001;
 
 // Middleware
+app.use(httpLogger);
 app.use(cors());
 app.use(express.json());
 
@@ -31,7 +34,7 @@ app.get('/health', (req, res) => {
 // Start Server
 if (require.main === module) {
     app.listen(PORT, () => {
-        console.log(`Auth Service running on port ${PORT}`);
+        logger.info(`Auth Service running on port ${PORT}`);
     });
 }
 

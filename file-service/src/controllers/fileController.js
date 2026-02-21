@@ -1,6 +1,7 @@
 const fileModel = require('../models/fileModel');
 const path = require('path');
 const fs = require('fs');
+const { logger } = require('../utils/logger');
 
 const uploadFile = async (req, res) => {
     try {
@@ -25,7 +26,7 @@ const uploadFile = async (req, res) => {
             file: savedFile
         });
     } catch (error) {
-        console.error('File Upload Error:', error);
+        logger.error({ err: error }, 'File Upload Error');
         return res.status(500).json({ error: 'Internal server error during upload' });
     }
 };
@@ -36,7 +37,7 @@ const getUserFiles = async (req, res) => {
         const files = await fileModel.getFilesByUser(userId);
         return res.status(200).json(files);
     } catch (error) {
-        console.error('Get Files Error:', error);
+        logger.error({ err: error }, 'Get Files Error');
         return res.status(500).json({ error: 'Internal server error' });
     }
 };
@@ -61,7 +62,7 @@ const downloadFile = async (req, res) => {
 
         res.download(filePath, fileRecord.original_name);
     } catch (error) {
-        console.error('Download File Error:', error);
+        logger.error({ err: error, fileId: req.params.id }, 'Download File Error');
         return res.status(500).json({ error: 'Internal server error during download' });
     }
 };
@@ -88,7 +89,7 @@ const deleteFile = async (req, res) => {
 
         return res.status(200).json({ message: 'File deleted successfully' });
     } catch (error) {
-        console.error('Delete File Error:', error);
+        logger.error({ err: error, fileId: req.params.id }, 'Delete File Error');
         return res.status(500).json({ error: 'Internal server error during delete' });
     }
 };

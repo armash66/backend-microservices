@@ -1,4 +1,5 @@
 const { Pool } = require('pg');
+const { logger } = require('../utils/logger');
 
 const pool = new Pool({
     host: process.env.DB_HOST,
@@ -9,7 +10,7 @@ const pool = new Pool({
 });
 
 pool.on('error', (err) => {
-    console.error('Unexpected error on idle pg client', err);
+    logger.error({ err }, 'Unexpected error on idle pg client');
     process.exit(-1);
 });
 

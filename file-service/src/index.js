@@ -36,7 +36,7 @@ app.use(cors());
 app.use(express.json());
 
 // Routes
-app.use('/files', fileRoutes);
+app.use(fileRoutes);
 
 // Health checks
 app.get('/health/live', (req, res) => res.status(200).json({ status: 'live', service: 'file-service' }));

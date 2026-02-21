@@ -28,7 +28,7 @@ app.use(cors());
 app.use(express.json());
 
 // Routes
-app.use('/auth', authRoutes);
+app.use(authRoutes);
 
 // Health checks
 app.get('/health/live', (req, res) => res.status(200).json({ status: 'live', service: 'auth-service' }));

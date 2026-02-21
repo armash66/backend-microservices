@@ -29,7 +29,7 @@ app.use(cors());
 app.use(express.json());
 
 // Routes
-app.use('/tasks', taskRoutes);
+app.use(taskRoutes);
 
 // Health checks
 app.get('/health/live', (req, res) => res.status(200).json({ status: 'live', service: 'task-service' }));

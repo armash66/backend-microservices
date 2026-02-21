@@ -1,6 +1,6 @@
 const pino = require('pino');
 const pinoHttp = require('pino-http');
-const { v4: uuidv4 } = require('uuid');
+const crypto = require('crypto');
 
 const logger = pino({
     level: process.env.LOG_LEVEL || 'info',
@@ -13,7 +13,7 @@ const logger = pino({
 const httpLogger = pinoHttp({
     logger,
     genReqId: (req) => {
-        return req.headers['x-request-id'] || uuidv4();
+        return req.headers['x-request-id'] || crypto.randomUUID();
     }
 });
 

@@ -13,9 +13,8 @@ if (!fs.existsSync(uploadDir)) {
     fs.mkdirSync(uploadDir, { recursive: true });
 }
 
-// Initialize DB Models
+// DB Models (Schema now managed by node-pg-migrate)
 const fileModel = require('./models/fileModel');
-fileModel.createFileTable();
 
 const fileRoutes = require('./routes/fileRoutes');
 

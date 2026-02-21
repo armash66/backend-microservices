@@ -1,24 +1,5 @@
 const db = require('../config/db');
 
-const createFileTable = async () => {
-    const queryText = `
-    CREATE TABLE IF NOT EXISTS files (
-      id SERIAL PRIMARY KEY,
-      user_id INTEGER NOT NULL,
-      original_name VARCHAR(255) NOT NULL,
-      file_path VARCHAR(255) NOT NULL,
-      mime_type VARCHAR(100),
-      size BIGINT,
-      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    );
-  `;
-    try {
-        await db.query(queryText);
-        console.log('Files table initialized');
-    } catch (error) {
-        console.error('Error creating files table:', error);
-    }
-};
 
 const saveFileMetadata = async (userId, originalName, filePath, mimeType, size) => {
     const queryText = `
@@ -49,7 +30,6 @@ const deleteFileMetadata = async (fileId, userId) => {
 };
 
 module.exports = {
-    createFileTable,
     saveFileMetadata,
     getFileByIdAndUser,
     getFilesByUser,

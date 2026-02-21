@@ -62,6 +62,23 @@ services:
       - task-service
       - file-service
 
+  grafana:
+    image: grafana/grafana
+    container_name: grafana_dashboard
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning
+      - ./grafana/dashboards:/var/lib/grafana/dashboards
+      - grafana_data:/var/lib/grafana
+    ports:
+      - "3030:3000"
+    networks:
+      - microservices_network
+    depends_on:
+      - prometheus
+
   auth-service:
     build: ./auth-service
     container_name: auth_service
@@ -151,6 +168,7 @@ services:
 volumes:
   postgres_data:
   file_uploads:
+  grafana_data:
 
 
 networks:

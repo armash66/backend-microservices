@@ -2,14 +2,15 @@ const express = require('express');
 const router = express.Router();
 const authController = require('../controllers/authController');
 const authMiddleware = require('../middleware/authMiddleware');
+const { registerRules, loginRules, handleValidation } = require('../middleware/validate');
 
-// POST /auth/register
-router.post('/register', authController.register);
+// POST /register
+router.post('/register', registerRules, handleValidation, authController.register);
 
-// POST /auth/login
-router.post('/login', authController.login);
+// POST /login
+router.post('/login', loginRules, handleValidation, authController.login);
 
-// DELETE /auth/me
+// DELETE /me
 router.delete('/me', authMiddleware, authController.deleteAccount);
 
 module.exports = router;

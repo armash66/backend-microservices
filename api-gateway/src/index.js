@@ -51,9 +51,9 @@ const services = {
     '/files': process.env.FILE_SERVICE_URL,
 };
 
-// Mount proxies
+// Mount versioned (v1) and unversioned proxies
 for (const [route, target] of Object.entries(services)) {
-    app.use(route, createProxyMiddleware({
+    const proxyConfig = {
         target,
         changeOrigin: true,
         onProxyReq: (proxyReq, req, res) => {
@@ -61,12 +61,16 @@ for (const [route, target] of Object.entries(services)) {
                 proxyReq.setHeader('x-request-id', req.id);
             }
         },
-        // Error handling if a downstream service is down
         onError: (err, req, res) => {
             logger.error(`Error communicating with ${route} service: ${err.message}`);
             res.status(502).json({ error: 'Bad Gateway - Service is down' });
         }
-    }));
+    };
+
+    // Versioned: /v1/auth, /v1/tasks, /v1/files
+    app.use(`/v1${route}`, createProxyMiddleware(proxyConfig));
+    // Backward-compatible: /auth, /tasks, /files
+    app.use(route, createProxyMiddleware(proxyConfig));
 }
 
 // Global Metrics probe

@@ -3,6 +3,7 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm install --production
 COPY . .
+RUN rm -f .env
 # Ensure uploads directory exists inside container just in case
 RUN mkdir -p /app/uploads
 EXPOSE 3003

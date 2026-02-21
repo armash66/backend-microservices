@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "jest --detectOpenHandles --forceExit",
-    "migrate": "node-pg-migrate"
+    "migrate": "node-pg-migrate -t task_migrations"
   },
   "keywords": [],
   "author": "",

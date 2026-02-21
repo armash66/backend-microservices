@@ -37,6 +37,10 @@ app.get('/health', (req, res) => {
 });
 
 // Start Server
-app.listen(PORT, () => {
-    console.log(`File Service running on port ${PORT}`);
-});
+if (require.main === module) {
+    app.listen(PORT, () => {
+        console.log(`File Service running on port ${PORT}`);
+    });
+}
+
+module.exports = app;

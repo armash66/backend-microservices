@@ -1,23 +1,5 @@
 const db = require('../config/db');
 
-const createTaskTable = async () => {
-    const queryText = `
-    CREATE TABLE IF NOT EXISTS tasks (
-      id SERIAL PRIMARY KEY,
-      user_id INTEGER NOT NULL,
-      title VARCHAR(255) NOT NULL,
-      description TEXT,
-      status VARCHAR(50) DEFAULT 'pending',
-      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    );
-  `;
-    try {
-        await db.query(queryText);
-        console.log('Tasks table initialized');
-    } catch (error) {
-        console.error('Error creating tasks table:', error);
-    }
-};
 
 const createTask = async (userId, title, description) => {
     const queryText = `
@@ -55,7 +37,6 @@ const deleteTask = async (taskId, userId) => {
 };
 
 module.exports = {
-    createTaskTable,
     createTask,
     getTasksByUser,
     updateTask,

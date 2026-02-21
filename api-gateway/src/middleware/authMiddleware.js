@@ -1,8 +1,8 @@
 const jwt = require('jsonwebtoken');
 
 const verifyToken = (req, res, next) => {
-    // Allow /auth/login and /auth/register to pass through without token
-    if (req.path === '/auth/login' || req.path === '/auth/register') {
+    // Allow public auth routes to pass through without token
+    if (req.path === '/auth/login' || req.path === '/auth/register' || req.path === '/auth/refresh') {
         return next();
     }
 

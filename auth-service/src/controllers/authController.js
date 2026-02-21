@@ -34,6 +34,12 @@ const register = async (req, res) => {
     }
 };
 
+const generateTokens = (payload) => {
+    const accessToken = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '15m' });
+    const refreshToken = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '7d' });
+    return { accessToken, refreshToken };
+};
+
 const login = async (req, res) => {
     try {
         const { email, password } = req.body;
@@ -50,16 +56,13 @@ const login = async (req, res) => {
             return res_helper.error(res, 401, 'Invalid credentials');
         }
 
-        // Create JWT Payload
-        const payload = {
-            userId: user.id,
-            email: user.email,
-        };
+        const payload = { userId: user.id, email: user.email };
+        const { accessToken, refreshToken } = generateTokens(payload);
 
-        // Sign Token
-        const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1h' });
-
-        return res_helper.success(res, { token }, 200, 'Login successful');
+        return res_helper.success(res, {
+            token: accessToken,
+            refreshToken
+        }, 200, 'Login successful');
 
     } catch (err) {
         logger.error({ err }, 'Login Error');
@@ -67,6 +70,24 @@ const login = async (req, res) => {
     }
 };
 
+const refreshAccessToken = async (req, res) => {
+    try {
+        const { refreshToken } = req.body;
+
+        if (!refreshToken) {
+            return res_helper.error(res, 400, 'Refresh token is required');
+        }
+
+        const decoded = jwt.verify(refreshToken, process.env.JWT_SECRET);
+        const payload = { userId: decoded.userId, email: decoded.email };
+        const newAccessToken = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '15m' });
+
+        return res_helper.success(res, { token: newAccessToken }, 200, 'Token refreshed');
+    } catch (err) {
+        logger.warn({ err }, 'Refresh token invalid or expired');
+        return res_helper.error(res, 403, 'Invalid or expired refresh token');
+    }
+};
 
 const deleteAccount = async (req, res) => {
     try {
@@ -91,5 +112,6 @@ const deleteAccount = async (req, res) => {
 module.exports = {
     register,
     login,
+    refreshAccessToken,
     deleteAccount
 };

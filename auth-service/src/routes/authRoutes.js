@@ -10,6 +10,9 @@ router.post('/register', registerRules, handleValidation, authController.registe
 // POST /login
 router.post('/login', loginRules, handleValidation, authController.login);
 
+// POST /refresh - get new access token using refresh token
+router.post('/refresh', authController.refreshAccessToken);
+
 // DELETE /me
 router.delete('/me', authMiddleware, authController.deleteAccount);
 

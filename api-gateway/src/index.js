@@ -9,6 +9,8 @@ const { register, metricsMiddleware } = require('./utils/metrics');
 require('dotenv').config();
 
 const authMiddleware = require('./middleware/authMiddleware');
+const swaggerUi = require('swagger-ui-express');
+const swaggerSpec = require('./docs/swagger');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -40,8 +42,13 @@ app.use(cors({
 app.use(httpLogger);
 app.use(metricsMiddleware);
 
-// Setup global JWT validation (Requirement: "Validate JWT before forwarding")
-// We apply this to all incoming proxy requests.
+// API Documentation (before auth middleware so it's publicly accessible)
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
+    customSiteTitle: 'Microservices API Docs',
+    customCss: '.swagger-ui .topbar { display: none }'
+}));
+
+// Setup global JWT validation
 app.use(authMiddleware);
 
 // Define Gateway Proxy Routes

@@ -1,0 +1,8 @@
+Testing Circuit Breaker DB query...
+Error occurred: Service degraded. Auth-PostgresDB is currently unavailable.
+Error: Service degraded. Auth-PostgresDB is currently unavailable.
+    at Function.<anonymous> (C:\Users\Armash Ansari\OneDrive\Desktop\Projects\Side Kicks\backend microservices\auth-service\src\utils\breaker.js:15:15)
+    at fallback (C:\Users\Armash Ansari\OneDrive\Desktop\Projects\Side Kicks\backend microservices\auth-service\node_modules\opossum\lib\circuit.js:966:10)
+    at handleError (C:\Users\Armash Ansari\OneDrive\Desktop\Projects\Side Kicks\backend microservices\auth-service\node_modules\opossum\lib\circuit.js:953:16)
+    at C:\Users\Armash Ansari\OneDrive\Desktop\Projects\Side Kicks\backend microservices\auth-service\node_modules\opossum\lib\circuit.js:790:17
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)

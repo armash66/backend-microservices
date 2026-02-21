@@ -10,11 +10,6 @@ const breakerOptions = {
 const createBreaker = (asyncFn, name) => {
     const breaker = new CircuitBreaker(asyncFn, breakerOptions);
 
-    breaker.fallback(() => {
-        logger.error({ circuit: name }, `Circuit Breaker FALLBACK triggered for ${name}`);
-        throw new Error(`Service degraded. ${name} is currently unavailable.`);
-    });
-
     breaker.on('open', () => logger.warn({ circuit: name }, `Circuit Breaker OPENED for ${name}`));
     breaker.on('halfOpen', () => logger.info({ circuit: name }, `Circuit Breaker HALF-OPEN for ${name}`));
     breaker.on('close', () => logger.info({ circuit: name }, `Circuit Breaker CLOSED for ${name}`));

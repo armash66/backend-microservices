@@ -38,7 +38,17 @@ const publishEvent = async (routingKey, payload) => {
     }
 };
 
+const closeRabbitMQ = async () => {
+    if (channel) {
+        logger.info('Closing RabbitMQ Channel.');
+        await channel.close();
+    }
+    // We ideally should close the connection here if we stored it at module level,
+    // but the node process dying cleans up TCP cleanly if channel cleanly drains in flight buffers.
+};
+
 module.exports = {
     connectRabbitMQ,
-    publishEvent
+    publishEvent,
+    closeRabbitMQ
 };

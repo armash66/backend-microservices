@@ -19,6 +19,7 @@
     "ioredis": "^5.9.3",
     "jsonwebtoken": "^9.0.3",
     "node-pg-migrate": "^8.0.4",
+    "opossum": "^9.0.0",
     "pg": "^8.18.0",
     "pino": "^10.3.1",
     "pino-http": "^11.0.0",

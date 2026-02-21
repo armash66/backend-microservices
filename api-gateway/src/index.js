@@ -75,10 +75,9 @@ app.get('/metrics', async (req, res) => {
     res.end(await register.metrics());
 });
 
-// Global 404
-app.use('*', (req, res) => {
-    res.status(404).json({ error: 'API Gateway: Route not found' });
-});
+// Health checks
+app.get('/health/live', (req, res) => res.status(200).json({ status: 'live' }));
+app.get('/health/ready', (req, res) => res.status(200).json({ status: 'ready' }));
 
 // Centralized Error Handler
 app.use((err, req, res, next) => {
@@ -90,6 +89,24 @@ app.use((err, req, res, next) => {
 });
 
 // Start Gateway
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
     logger.info(`API Gateway running on port ${PORT}`);
 });
+
+// Graceful Shutdown
+const shutdown = () => {
+    logger.info('API Gateway received shutdown signal. Closing server...');
+    server.close(() => {
+        logger.info('Gateway server closed.');
+        process.exit(0);
+    });
+
+    // Force exit after 10s if connections linger
+    setTimeout(() => {
+        logger.error('Force closing Gateway due to timeout.');
+        process.exit(1);
+    }, 10000);
+};
+
+process.on('SIGTERM', shutdown);
+process.on('SIGINT', shutdown);

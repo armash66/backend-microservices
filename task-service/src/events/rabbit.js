@@ -57,6 +57,14 @@ const connectRabbitMQ = async () => {
     }
 };
 
+const closeRabbitMQ = async () => {
+    if (channel) {
+        logger.info('Closing RabbitMQ Channel.');
+        await channel.close();
+    }
+};
+
 module.exports = {
-    connectRabbitMQ
+    connectRabbitMQ,
+    closeRabbitMQ
 };

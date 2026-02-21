@@ -1,5 +1,6 @@
 const { Pool } = require('pg');
 const { logger } = require('../utils/logger');
+const { createBreaker } = require('../utils/breaker');
 
 const pool = new Pool({
     connectionString: process.env.DATABASE_URL
@@ -15,7 +16,13 @@ const closePool = async () => {
     await pool.end();
 };
 
+const queryWrapper = async (text, params) => {
+    return pool.query(text, params);
+};
+
+const dbBreaker = createBreaker(queryWrapper, 'Task-PostgresDB');
+
 module.exports = {
-    query: (text, params) => pool.query(text, params),
+    query: (text, params) => dbBreaker.fire(text, params),
     closePool
 };

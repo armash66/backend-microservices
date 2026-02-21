@@ -7,11 +7,12 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: microservices
+      POSTGRES_DB: postgres
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./postgres/init-databases.sh:/docker-entrypoint-initdb.d/init-databases.sh
     networks:
       - microservices_network
     healthcheck:
@@ -88,8 +89,8 @@ services:
       - DB_PORT=5432
       - DB_USER=postgres
       - DB_PASSWORD=postgres
-      - DB_NAME=microservices
-      - DATABASE_URL=postgres://postgres:postgres@postgres:5432/microservices
+      - DB_NAME=auth_db
+      - DATABASE_URL=postgres://postgres:postgres@postgres:5432/auth_db
       - JWT_SECRET=supersecret_auth_key_123
       - RABBITMQ_URL=amqp://rabbitmq:5672
     depends_on:
@@ -109,8 +110,8 @@ services:
       - DB_PORT=5432
       - DB_USER=postgres
       - DB_PASSWORD=postgres
-      - DB_NAME=microservices
-      - DATABASE_URL=postgres://postgres:postgres@postgres:5432/microservices
+      - DB_NAME=task_db
+      - DATABASE_URL=postgres://postgres:postgres@postgres:5432/task_db
       - JWT_SECRET=supersecret_auth_key_123
       - RABBITMQ_URL=amqp://rabbitmq:5672
       - REDIS_URL=redis://redis:6379
@@ -133,8 +134,8 @@ services:
       - DB_PORT=5432
       - DB_USER=postgres
       - DB_PASSWORD=postgres
-      - DB_NAME=microservices
-      - DATABASE_URL=postgres://postgres:postgres@postgres:5432/microservices
+      - DB_NAME=file_db
+      - DATABASE_URL=postgres://postgres:postgres@postgres:5432/file_db
       - JWT_SECRET=supersecret_auth_key_123
       - RABBITMQ_URL=amqp://rabbitmq:5672
     volumes:

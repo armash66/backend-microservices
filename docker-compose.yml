@@ -34,6 +34,19 @@ services:
       timeout: 5s
       retries: 5
 
+  redis:
+    image: redis:alpine
+    container_name: redis_cache
+    ports:
+      - "6379:6379"
+    networks:
+      - microservices_network
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   auth-service:
     build: ./auth-service
     container_name: auth_service
@@ -68,10 +81,13 @@ services:
       - DATABASE_URL=postgres://postgres:postgres@postgres:5432/microservices
       - JWT_SECRET=supersecret_auth_key_123
       - RABBITMQ_URL=amqp://rabbitmq:5672
+      - REDIS_URL=redis://redis:6379
     depends_on:
       postgres:
         condition: service_healthy
       rabbitmq:
+        condition: service_healthy
+      redis:
         condition: service_healthy
     networks:
       - microservices_network

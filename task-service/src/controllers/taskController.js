@@ -1,5 +1,6 @@
 const taskModel = require('../models/taskModel');
 const { logger } = require('../utils/logger');
+const { getCache, setCache, invalidateCache } = require('../cache/redis');
 
 const createTask = async (req, res) => {
     try {
@@ -11,6 +12,10 @@ const createTask = async (req, res) => {
         }
 
         const newTask = await taskModel.createTask(userId, title, description);
+
+        // Evict outdated cache
+        await invalidateCache(`task:user:${userId}`);
+
         return res.status(201).json(newTask);
     } catch (error) {
         logger.error({ err: error }, 'Create Task Error');
@@ -21,7 +26,20 @@ const createTask = async (req, res) => {
 const getTasks = async (req, res) => {
     try {
         const userId = req.user.userId;
+        const cacheKey = `task:user:${userId}`;
+
+        // 1. Check Redis
+        const cachedTasks = await getCache(cacheKey);
+        if (cachedTasks) {
+            return res.status(200).json(cachedTasks);
+        }
+
+        // 2. Fetch Truth
         const tasks = await taskModel.getTasksByUser(userId);
+
+        // 3. Populate Redis
+        await setCache(cacheKey, tasks, 60);
+
         return res.status(200).json(tasks);
     } catch (error) {
         logger.error({ err: error }, 'Get Tasks Error');
@@ -41,6 +59,8 @@ const updateTask = async (req, res) => {
             return res.status(404).json({ error: 'Task not found or not authorized' });
         }
 
+        await invalidateCache(`task:user:${userId}`);
+
         return res.status(200).json(updatedTask);
     } catch (error) {
         logger.error({ err: error, taskId: req.params.id }, 'Update Task Error');
@@ -58,6 +78,8 @@ const deleteTask = async (req, res) => {
         if (!deletedTask) {
             return res.status(404).json({ error: 'Task not found or not authorized' });
         }
+
+        await invalidateCache(`task:user:${userId}`);
 
         return res.status(200).json({ message: 'Task deleted successfully', task: deletedTask });
     } catch (error) {

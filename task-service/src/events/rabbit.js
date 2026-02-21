@@ -1,6 +1,7 @@
 const amqp = require('amqplib');
 const taskModel = require('../models/taskModel');
 const { logger } = require('../utils/logger');
+const { invalidateCache } = require('../cache/redis');
 
 let channel = null;
 
@@ -29,6 +30,13 @@ const connectRabbitMQ = async () => {
 
                 try {
                     logger.info({ userId }, 'Received user.deleted event');
+
+                    // Invalidate Cache IMMEDIATELY.
+                    // If we do this after DB deletion, there's a microsecond window
+                    // where a separate read request could see the empty DB and incorrectly
+                    // cache the empty list, keeping the user technically "alive" in Redis.
+                    await invalidateCache(`task:user:${userId}`);
+
                     await taskModel.deleteTasksByUser(userId);
 
                     // Acknowledge the message only after successfully deleting the tasks

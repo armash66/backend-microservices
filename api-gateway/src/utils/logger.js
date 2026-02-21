@@ -4,7 +4,10 @@ const { v4: uuidv4 } = require('uuid');
 
 const logger = pino({
     level: process.env.LOG_LEVEL || 'info',
-    base: { service: 'api-gateway' }
+    base: {
+        service: 'api-gateway',
+        instance: process.env.HOSTNAME
+    }
 });
 
 const httpLogger = pinoHttp({

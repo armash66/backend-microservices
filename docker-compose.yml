@@ -85,7 +85,8 @@ services:
 
   task-service:
     build: ./task-service
-    container_name: task_service
+    deploy:
+      replicas: 3
     environment:
       - PORT=3002
       - DB_HOST=postgres

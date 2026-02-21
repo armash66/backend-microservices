@@ -28,13 +28,9 @@ app.use(metricsMiddleware);
 app.use(cors());
 app.use(express.json());
 
-// Routes
-app.use(taskRoutes);
-
-// Health checks
+// Health checks (before auth-protected routes)
 app.get('/health/live', (req, res) => res.status(200).json({ status: 'live', service: 'task-service' }));
 app.get('/health/ready', (req, res) => {
-    // A robust app checks Redis, DB and Rabbit configs here
     res.status(200).json({ status: 'ready', service: 'task-service' });
 });
 
@@ -42,6 +38,9 @@ app.get('/metrics', async (req, res) => {
     res.set('Content-Type', register.contentType);
     res.end(await register.metrics());
 });
+
+// Routes (auth-protected)
+app.use(taskRoutes);
 
 // Start Server
 let server;

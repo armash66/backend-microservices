@@ -5,9 +5,8 @@ const dotenv = require('dotenv');
 // Load environment variables
 dotenv.config();
 
-// Initialize DB Models
+// DB Models (Schema now managed by node-pg-migrate)
 const userModel = require('./models/userModel');
-userModel.createUserTable();
 
 const authRoutes = require('./routes/authRoutes');
 

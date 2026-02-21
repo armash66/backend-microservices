@@ -56,7 +56,7 @@ function App() {
       });
       writeLog('AUTH', 'Login success! Token acquired.');
       setSession({
-        token: res.data.token,
+        token: res.data.data.token,
         user: { email: authForm.email }
       });
     } catch (err) {
@@ -68,8 +68,9 @@ function App() {
     try {
       writeLog('TASK', 'Fetching tasks (Cache-Aside layer active)...');
       const res = await axios.get('/tasks');
-      setTasks(res.data);
-      writeLog('TASK', `Retrieved ${res.data.length} tasks.`);
+      const tasks = res.data.data || [];
+      setTasks(tasks);
+      writeLog('TASK', `Retrieved ${tasks.length} tasks.`);
     } catch (err) {
       writeLog('ERROR', 'Failed to fetch tasks');
     }

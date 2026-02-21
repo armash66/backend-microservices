@@ -3,19 +3,16 @@ const jwt = require('jsonwebtoken');
 const userModel = require('../models/userModel');
 const { publishEvent } = require('../events/rabbit');
 const { logger } = require('../utils/logger');
+const res_helper = require('../utils/response');
 
 const register = async (req, res) => {
     try {
         const { email, password } = req.body;
 
-        if (!email || !password) {
-            return res.status(400).json({ error: 'Email and password are required' });
-        }
-
         // Check if user exists
         const existingUser = await userModel.getUserByEmail(email);
         if (existingUser) {
-            return res.status(409).json({ error: 'Email already registered' });
+            return res_helper.error(res, 409, 'Email already registered');
         }
 
         // Hash password
@@ -25,18 +22,15 @@ const register = async (req, res) => {
         // Save user
         const newUser = await userModel.createUser(email, hashedPassword);
 
-        return res.status(201).json({
-            message: 'User registered successfully',
-            user: {
-                id: newUser.id,
-                email: newUser.email,
-                created_at: newUser.created_at
-            }
-        });
+        return res_helper.created(res, {
+            id: newUser.id,
+            email: newUser.email,
+            created_at: newUser.created_at
+        }, 'User registered successfully');
 
-    } catch (error) {
-        logger.error({ err: error }, 'Registration Error');
-        return res.status(500).json({ error: 'Internal server error' });
+    } catch (err) {
+        logger.error({ err }, 'Registration Error');
+        return res_helper.error(res, 500, 'Internal server error');
     }
 };
 
@@ -44,20 +38,16 @@ const login = async (req, res) => {
     try {
         const { email, password } = req.body;
 
-        if (!email || !password) {
-            return res.status(400).json({ error: 'Email and password are required' });
-        }
-
         // Find user
         const user = await userModel.getUserByEmail(email);
         if (!user) {
-            return res.status(401).json({ error: 'Invalid credentials' });
+            return res_helper.error(res, 401, 'Invalid credentials');
         }
 
         // Check password
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) {
-            return res.status(401).json({ error: 'Invalid credentials' });
+            return res_helper.error(res, 401, 'Invalid credentials');
         }
 
         // Create JWT Payload
@@ -69,35 +59,32 @@ const login = async (req, res) => {
         // Sign Token
         const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1h' });
 
-        return res.status(200).json({
-            message: 'Login successful',
-            token
-        });
+        return res_helper.success(res, { token }, 200, 'Login successful');
 
-    } catch (error) {
-        logger.error({ err: error }, 'Login Error');
-        return res.status(500).json({ error: 'Internal server error' });
+    } catch (err) {
+        logger.error({ err }, 'Login Error');
+        return res_helper.error(res, 500, 'Internal server error');
     }
 };
 
 
 const deleteAccount = async (req, res) => {
     try {
-        const userId = req.user.userId; // Provided by authMiddleware locally
+        const userId = req.user.userId;
 
         const deletedUser = await userModel.deleteUserById(userId);
 
         if (!deletedUser) {
-            return res.status(404).json({ error: 'User not found' });
+            return res_helper.error(res, 404, 'User not found');
         }
 
         // Emit the domain event
         await publishEvent('user.deleted', { userId });
 
-        return res.status(200).json({ message: 'Account deleted out successfully' });
-    } catch (error) {
-        logger.error({ err: error, userId: req.user?.userId }, 'Delete Account Error');
-        return res.status(500).json({ error: 'Internal server error' });
+        return res_helper.success(res, null, 200, 'Account deleted successfully');
+    } catch (err) {
+        logger.error({ err, userId: req.user?.userId }, 'Delete Account Error');
+        return res_helper.error(res, 500, 'Internal server error');
     }
 };
 

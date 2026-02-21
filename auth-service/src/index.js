@@ -10,6 +10,9 @@ const userModel = require('./models/userModel');
 
 const authRoutes = require('./routes/authRoutes');
 
+const { connectRabbitMQ } = require('./events/rabbit');
+connectRabbitMQ();
+
 const app = express();
 const PORT = process.env.PORT || 3001;
 

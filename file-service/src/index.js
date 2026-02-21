@@ -18,6 +18,9 @@ const fileModel = require('./models/fileModel');
 
 const fileRoutes = require('./routes/fileRoutes');
 
+const { connectRabbitMQ } = require('./events/rabbit');
+connectRabbitMQ();
+
 const app = express();
 const PORT = process.env.PORT || 3003;
 

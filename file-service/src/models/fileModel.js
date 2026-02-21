@@ -29,9 +29,16 @@ const deleteFileMetadata = async (fileId, userId) => {
     return result.rows[0];
 };
 
+const deleteFilesByUser = async (userId) => {
+    const queryText = 'DELETE FROM files WHERE user_id = $1 RETURNING file_path';
+    const result = await db.query(queryText, [userId]);
+    return result.rows;     // We return the rows to grab the physical file paths, so we can clean disk too
+};
+
 module.exports = {
     saveFileMetadata,
     getFileByIdAndUser,
     getFilesByUser,
-    deleteFileMetadata
+    deleteFileMetadata,
+    deleteFilesByUser
 };

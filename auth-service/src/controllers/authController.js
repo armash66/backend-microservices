@@ -1,6 +1,7 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const userModel = require('../models/userModel');
+const { publishEvent } = require('../events/rabbit');
 
 const register = async (req, res) => {
     try {
@@ -78,7 +79,29 @@ const login = async (req, res) => {
     }
 };
 
+
+const deleteAccount = async (req, res) => {
+    try {
+        const userId = req.user.userId; // Provided by authMiddleware locally
+
+        const deletedUser = await userModel.deleteUserById(userId);
+
+        if (!deletedUser) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        // Emit the domain event
+        await publishEvent('user.deleted', { userId });
+
+        return res.status(200).json({ message: 'Account deleted out successfully' });
+    } catch (error) {
+        console.error('Delete Account Error:', error);
+        return res.status(500).json({ error: 'Internal server error' });
+    }
+};
+
 module.exports = {
     register,
-    login
+    login,
+    deleteAccount
 };

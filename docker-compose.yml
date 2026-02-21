@@ -15,8 +15,22 @@ services:
     networks:
       - microservices_network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
       interval: 5s
+      timeout: 5s
+      retries: 5
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: rabbitmq_msg_broker
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    networks:
+      - microservices_network
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 10s
       timeout: 5s
       retries: 5
 
@@ -30,9 +44,13 @@ services:
       - DB_USER=postgres
       - DB_PASSWORD=postgres
       - DB_NAME=microservices
+      - DATABASE_URL=postgres://postgres:postgres@postgres:5432/microservices
       - JWT_SECRET=supersecret_auth_key_123
+      - RABBITMQ_URL=amqp://rabbitmq:5672
     depends_on:
       postgres:
+        condition: service_healthy
+      rabbitmq:
         condition: service_healthy
     networks:
       - microservices_network
@@ -47,9 +65,13 @@ services:
       - DB_USER=postgres
       - DB_PASSWORD=postgres
       - DB_NAME=microservices
+      - DATABASE_URL=postgres://postgres:postgres@postgres:5432/microservices
       - JWT_SECRET=supersecret_auth_key_123
+      - RABBITMQ_URL=amqp://rabbitmq:5672
     depends_on:
       postgres:
+        condition: service_healthy
+      rabbitmq:
         condition: service_healthy
     networks:
       - microservices_network
@@ -64,11 +86,15 @@ services:
       - DB_USER=postgres
       - DB_PASSWORD=postgres
       - DB_NAME=microservices
+      - DATABASE_URL=postgres://postgres:postgres@postgres:5432/microservices
       - JWT_SECRET=supersecret_auth_key_123
+      - RABBITMQ_URL=amqp://rabbitmq:5672
     volumes:
       - file_uploads:/app/uploads
     depends_on:
       postgres:
+        condition: service_healthy
+      rabbitmq:
         condition: service_healthy
     networks:
       - microservices_network
@@ -94,6 +120,7 @@ services:
 volumes:
   postgres_data:
   file_uploads:
+
 
 networks:
   microservices_network:

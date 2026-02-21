@@ -13,7 +13,14 @@ const getUserByEmail = async (email) => {
     return result.rows[0];
 };
 
+const deleteUserById = async (userId) => {
+    const queryText = 'DELETE FROM users WHERE id = $1 RETURNING id';
+    const result = await db.query(queryText, [userId]);
+    return result.rows[0];
+};
+
 module.exports = {
     createUser,
     getUserByEmail,
+    deleteUserById
 };

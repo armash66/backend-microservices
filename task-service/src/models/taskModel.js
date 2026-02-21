@@ -36,9 +36,16 @@ const deleteTask = async (taskId, userId) => {
     return result.rows[0];
 };
 
+const deleteTasksByUser = async (userId) => {
+    const queryText = 'DELETE FROM tasks WHERE user_id = $1 RETURNING *';
+    const result = await db.query(queryText, [userId]);
+    return result.rows;
+};
+
 module.exports = {
     createTask,
     getTasksByUser,
     updateTask,
     deleteTask,
+    deleteTasksByUser
 };

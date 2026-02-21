@@ -10,6 +10,9 @@ const taskModel = require('./models/taskModel');
 
 const taskRoutes = require('./routes/taskRoutes');
 
+const { connectRabbitMQ } = require('./events/rabbit');
+connectRabbitMQ();
+
 const app = express();
 const PORT = process.env.PORT || 3002;
 

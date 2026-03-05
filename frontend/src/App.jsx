@@ -2,15 +2,31 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import axios from 'axios';
 import './index.css';
 
-// ============================================================
-// TOAST NOTIFICATION SYSTEM
-// ============================================================
+/* ================================================================
+   SVG ICONS — lightweight inline icons, no emoji
+   ================================================================ */
+const Icons = {
+  tasks: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="18" height="18" rx="2" /><path d="M9 12l2 2 4-4" /></svg>,
+  files: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z" /><polyline points="14 2 14 8 20 8" /></svg>,
+  logs: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="4 17 10 11 4 5" /><line x1="12" y1="19" x2="20" y2="19" /></svg>,
+  trash: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" /></svg>,
+  download: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></svg>,
+  upload: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="17 8 12 3 7 8" /><line x1="12" y1="3" x2="12" y2="15" /></svg>,
+  warning: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" /><line x1="12" y1="9" x2="12" y2="13" /><line x1="12" y1="17" x2="12.01" y2="17" /></svg>,
+  logout: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" /></svg>,
+  refresh: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="23 4 23 10 17 10" /><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" /></svg>,
+  plus: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>,
+  menu: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" /></svg>,
+};
+
+/* ================================================================
+   TOAST SYSTEM
+   ================================================================ */
 function ToastContainer({ toasts, onDismiss }) {
   return (
     <div className="toast-container">
-      {toasts.map((t) => (
+      {toasts.map(t => (
         <div key={t.id} className={`toast ${t.type}`}>
-          <span>{t.icon}</span>
           <span>{t.message}</span>
           <button className="toast-close" onClick={() => onDismiss(t.id)}>×</button>
         </div>
@@ -19,9 +35,9 @@ function ToastContainer({ toasts, onDismiss }) {
   );
 }
 
-// ============================================================
-// AUTH PAGE (Login + Register)
-// ============================================================
+/* ================================================================
+   AUTH PAGE
+   ================================================================ */
 function AuthPage({ onLogin, toast }) {
   const [mode, setMode] = useState('login');
   const [form, setForm] = useState({ email: '', password: '' });
@@ -29,142 +45,82 @@ function AuthPage({ onLogin, toast }) {
   const [errors, setErrors] = useState({});
 
   const validate = () => {
-    const errs = {};
-    if (!form.email.trim()) errs.email = 'Email is required';
-    else if (!/\S+@\S+\.\S+/.test(form.email)) errs.email = 'Enter a valid email';
-    if (!form.password) errs.password = 'Password is required';
-    else if (mode === 'register' && form.password.length < 6) errs.password = 'At least 6 characters';
-    else if (mode === 'register' && !/\d/.test(form.password)) errs.password = 'Must contain a number';
-    setErrors(errs);
-    return Object.keys(errs).length === 0;
+    const e = {};
+    if (!form.email.trim()) e.email = 'Required';
+    else if (!/\S+@\S+\.\S+/.test(form.email)) e.email = 'Invalid email';
+    if (!form.password) e.password = 'Required';
+    else if (mode === 'register' && form.password.length < 6) e.password = 'Min 6 characters';
+    else if (mode === 'register' && !/\d/.test(form.password)) e.password = 'Must include a number';
+    setErrors(e);
+    return Object.keys(e).length === 0;
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = async (ev) => {
+    ev.preventDefault();
     if (!validate()) return;
     setLoading(true);
     setErrors({});
-
     try {
       if (mode === 'register') {
-        // Step 1: Register
-        await axios.post('/auth/register', {
-          email: form.email,
-          password: form.password,
-        });
-        toast('success', '✓', 'Account created successfully! Logging in...');
-
-        // Step 2: Auto-login after registration
-        const loginRes = await axios.post('/auth/login', {
-          email: form.email,
-          password: form.password,
-        });
-        onLogin(loginRes.data.data, form.email);
-      } else {
-        // Login
-        const res = await axios.post('/auth/login', {
-          email: form.email,
-          password: form.password,
-        });
+        await axios.post('/auth/register', { email: form.email, password: form.password });
+        toast('success', 'Account created');
+        const res = await axios.post('/auth/login', { email: form.email, password: form.password });
         onLogin(res.data.data, form.email);
-        toast('success', '✓', 'Welcome back!');
+      } else {
+        const res = await axios.post('/auth/login', { email: form.email, password: form.password });
+        onLogin(res.data.data, form.email);
+        toast('success', 'Logged in');
       }
     } catch (err) {
-      const msg = err.response?.data?.error
-        || err.response?.data?.details?.map(d => d.message).join(', ')
-        || err.message
-        || 'Something went wrong';
-      toast('error', '✕', msg);
+      const msg = err.response?.data?.error || err.response?.data?.details?.map(d => d.message).join(', ') || err.message;
+      toast('error', msg);
       if (err.response?.data?.details) {
-        const fieldErrors = {};
-        err.response.data.details.forEach(d => {
-          fieldErrors[d.field] = d.message;
-        });
-        setErrors(fieldErrors);
+        const fe = {};
+        err.response.data.details.forEach(d => { fe[d.field] = d.message; });
+        setErrors(fe);
       }
     } finally {
       setLoading(false);
     }
   };
 
-  const updateField = (field, value) => {
-    setForm(prev => ({ ...prev, [field]: value }));
-    if (errors[field]) setErrors(prev => ({ ...prev, [field]: undefined }));
+  const set = (k, v) => {
+    setForm(p => ({ ...p, [k]: v }));
+    if (errors[k]) setErrors(p => ({ ...p, [k]: undefined }));
   };
 
   return (
     <div className="auth-page">
       <div className="auth-container">
         <div className="auth-header">
-          <div className="auth-logo">
-            <div className="auth-logo-icon">⚡</div>
-            <span className="auth-logo-text">Side Kicks</span>
-          </div>
-          <p className="auth-subtitle">Microservices-powered task management</p>
+          <div className="auth-brand">Side Kicks</div>
+          <div className="auth-subtitle">Sign in to your workspace</div>
         </div>
-
         <div className="auth-card">
           <div className="auth-tabs">
-            <button
-              id="login-tab"
-              className={`auth-tab ${mode === 'login' ? 'active' : ''}`}
-              onClick={() => { setMode('login'); setErrors({}); }}
-            >
-              Sign In
-            </button>
-            <button
-              id="register-tab"
-              className={`auth-tab ${mode === 'register' ? 'active' : ''}`}
-              onClick={() => { setMode('register'); setErrors({}); }}
-            >
-              Create Account
-            </button>
+            <button className={`auth-tab ${mode === 'login' ? 'active' : ''}`} onClick={() => { setMode('login'); setErrors({}); }}>Sign In</button>
+            <button className={`auth-tab ${mode === 'register' ? 'active' : ''}`} onClick={() => { setMode('register'); setErrors({}); }}>Create Account</button>
           </div>
-
           <form onSubmit={handleSubmit} noValidate>
             <div className="form-group">
-              <label className="form-label" htmlFor="auth-email">Email Address</label>
-              <input
-                id="auth-email"
-                className="form-input"
-                type="email"
-                placeholder="you@example.com"
-                value={form.email}
-                onChange={(e) => updateField('email', e.target.value)}
-                autoComplete="email"
-              />
-              {errors.email && <div className="form-error">⚠ {errors.email}</div>}
+              <label className="form-label">Email</label>
+              <input className="form-input" type="email" placeholder="you@company.com" value={form.email} onChange={e => set('email', e.target.value)} autoComplete="email" />
+              {errors.email && <div className="form-error">{errors.email}</div>}
             </div>
-
             <div className="form-group">
-              <label className="form-label" htmlFor="auth-password">Password</label>
-              <input
-                id="auth-password"
-                className="form-input"
-                type="password"
-                placeholder={mode === 'register' ? 'Min 6 chars, include a number' : '••••••••'}
-                value={form.password}
-                onChange={(e) => updateField('password', e.target.value)}
-                autoComplete={mode === 'register' ? 'new-password' : 'current-password'}
-              />
-              {errors.password && <div className="form-error">⚠ {errors.password}</div>}
+              <label className="form-label">Password</label>
+              <input className="form-input" type="password" placeholder="••••••••" value={form.password} onChange={e => set('password', e.target.value)} autoComplete={mode === 'register' ? 'new-password' : 'current-password'} />
+              {errors.password && <div className="form-error">{errors.password}</div>}
             </div>
-
-            <button
-              id="auth-submit"
-              type="submit"
-              className="btn btn-primary"
-              disabled={loading}
-            >
-              {loading ? <span className="spinner"></span> : null}
+            <button type="submit" className="btn btn-primary" disabled={loading}>
+              {loading ? <span className="spinner" /> : null}
               {mode === 'login' ? 'Sign In' : 'Create Account'}
             </button>
           </form>
-
           <div className="auth-footer">
             {mode === 'login'
-              ? <>Don't have an account? <a href="#" onClick={(e) => { e.preventDefault(); setMode('register'); }}>Sign up</a></>
-              : <>Already have an account? <a href="#" onClick={(e) => { e.preventDefault(); setMode('login'); }}>Sign in</a></>
+              ? <>No account? <a href="#" onClick={e => { e.preventDefault(); setMode('register'); }}>Create one</a></>
+              : <>Have an account? <a href="#" onClick={e => { e.preventDefault(); setMode('login'); }}>Sign in</a></>
             }
           </div>
         </div>
@@ -173,591 +129,332 @@ function AuthPage({ onLogin, toast }) {
   );
 }
 
-// ============================================================
-// DASHBOARD
-// ============================================================
+/* ================================================================
+   DASHBOARD
+   ================================================================ */
 function Dashboard({ session, onLogout, toast, logs, writeLog }) {
   const [tasks, setTasks] = useState([]);
   const [files, setFiles] = useState([]);
-  const [activeView, setActiveView] = useState('tasks');
+  const [view, setView] = useState('tasks');
   const [taskForm, setTaskForm] = useState({ title: '', description: '' });
   const [loadingTasks, setLoadingTasks] = useState(false);
   const [loadingFiles, setLoadingFiles] = useState(false);
-  const [creatingTask, setCreatingTask] = useState(false);
+  const [creating, setCreating] = useState(false);
   const [uploading, setUploading] = useState(false);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [deletingAccount, setDeletingAccount] = useState(false);
+  const [deleteModal, setDeleteModal] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const fileInputRef = useRef(null);
-  const logsEndRef = useRef(null);
+  const fileRef = useRef(null);
+  const logsEnd = useRef(null);
 
-  // Scroll logs to bottom
-  useEffect(() => {
-    logsEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [logs]);
+  useEffect(() => { logsEnd.current?.scrollIntoView({ behavior: 'smooth' }); }, [logs]);
 
-  // Load tasks
   const loadTasks = useCallback(async () => {
     setLoadingTasks(true);
     try {
-      writeLog('TASK', 'Fetching tasks...');
-      const res = await axios.get('/tasks');
-      const list = res.data.data || [];
-      setTasks(list);
-      writeLog('TASK', `Retrieved ${list.length} tasks`);
-    } catch (err) {
-      writeLog('ERROR', 'Failed to fetch tasks');
-      toast('error', '✕', 'Failed to load tasks');
-    } finally {
-      setLoadingTasks(false);
-    }
+      writeLog('TASK', 'Fetching tasks');
+      const r = await axios.get('/tasks');
+      setTasks(r.data.data || []);
+    } catch { toast('error', 'Failed to load tasks'); }
+    finally { setLoadingTasks(false); }
   }, [writeLog, toast]);
 
-  // Load files
   const loadFiles = useCallback(async () => {
     setLoadingFiles(true);
     try {
-      writeLog('FILE', 'Fetching files...');
-      const res = await axios.get('/files');
-      const list = res.data.data || [];
-      setFiles(list);
-      writeLog('FILE', `Retrieved ${list.length} files`);
-    } catch (err) {
-      writeLog('ERROR', 'Failed to fetch files');
-    } finally {
-      setLoadingFiles(false);
-    }
+      writeLog('FILE', 'Fetching files');
+      const r = await axios.get('/files');
+      setFiles(r.data.data || []);
+    } catch { }
+    finally { setLoadingFiles(false); }
   }, [writeLog]);
 
-  // Initial data load
-  useEffect(() => {
-    loadTasks();
-    loadFiles();
-  }, [loadTasks, loadFiles]);
+  useEffect(() => { loadTasks(); loadFiles(); }, [loadTasks, loadFiles]);
 
-  // Create task
-  const handleCreateTask = async (e) => {
+  const createTask = async (e) => {
     e.preventDefault();
     if (!taskForm.title.trim()) return;
-    setCreatingTask(true);
+    setCreating(true);
     try {
-      writeLog('TASK', `Creating "${taskForm.title}"...`);
       await axios.post('/tasks', taskForm);
-      writeLog('TASK', 'Task created successfully');
-      toast('success', '✓', 'Task created!');
+      toast('success', 'Task created');
       setTaskForm({ title: '', description: '' });
       loadTasks();
-    } catch (err) {
-      writeLog('ERROR', 'Task creation failed');
-      toast('error', '✕', 'Failed to create task');
-    } finally {
-      setCreatingTask(false);
-    }
+    } catch { toast('error', 'Failed to create task'); }
+    finally { setCreating(false); }
   };
 
-  // Update task status
-  const handleUpdateStatus = async (id, status) => {
-    try {
-      writeLog('TASK', `Updating task #${id} → ${status}`);
-      await axios.put(`/tasks/${id}`, { status });
-      writeLog('TASK', 'Status updated');
-      loadTasks();
-    } catch (err) {
-      writeLog('ERROR', 'Status update failed');
-      toast('error', '✕', 'Failed to update status');
-    }
+  const updateStatus = async (id, status) => {
+    try { await axios.put(`/tasks/${id}`, { status }); loadTasks(); }
+    catch { toast('error', 'Update failed'); }
   };
 
-  // Delete task
-  const handleDeleteTask = async (id) => {
-    try {
-      writeLog('TASK', `Deleting task #${id}...`);
-      await axios.delete(`/tasks/${id}`);
-      writeLog('TASK', 'Task deleted');
-      toast('success', '✓', 'Task deleted');
-      loadTasks();
-    } catch (err) {
-      writeLog('ERROR', 'Task deletion failed');
-      toast('error', '✕', 'Failed to delete task');
-    }
+  const deleteTask = async (id) => {
+    try { await axios.delete(`/tasks/${id}`); toast('success', 'Task deleted'); loadTasks(); }
+    catch { toast('error', 'Delete failed'); }
   };
 
-  // Upload file
-  const handleFileUpload = async (e) => {
+  const uploadFile = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
     setUploading(true);
     try {
-      const formData = new FormData();
-      formData.append('document', file);
-      writeLog('FILE', `Uploading "${file.name}"...`);
-      await axios.post('/files/upload', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
-      writeLog('FILE', 'Upload complete');
-      toast('success', '✓', `"${file.name}" uploaded!`);
+      const fd = new FormData();
+      fd.append('document', file);
+      await axios.post('/files/upload', fd, { headers: { 'Content-Type': 'multipart/form-data' } });
+      toast('success', `Uploaded ${file.name}`);
       loadFiles();
-    } catch (err) {
-      writeLog('ERROR', 'File upload failed');
-      toast('error', '✕', 'Upload failed');
-    } finally {
-      setUploading(false);
-      if (fileInputRef.current) fileInputRef.current.value = '';
-    }
+    } catch { toast('error', 'Upload failed'); }
+    finally { setUploading(false); if (fileRef.current) fileRef.current.value = ''; }
   };
 
-  // Download file
-  const handleDownloadFile = async (id, filename) => {
+  const downloadFile = async (id, name) => {
     try {
-      writeLog('FILE', `Downloading "${filename}"...`);
-      const res = await axios.get(`/files/download/${id}`, { responseType: 'blob' });
-      const url = window.URL.createObjectURL(new Blob([res.data]));
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
+      const r = await axios.get(`/files/download/${id}`, { responseType: 'blob' });
+      const url = window.URL.createObjectURL(new Blob([r.data]));
+      const a = document.createElement('a'); a.href = url; a.download = name;
+      document.body.appendChild(a); a.click(); a.remove();
       window.URL.revokeObjectURL(url);
-      writeLog('FILE', 'Download complete');
-    } catch (err) {
-      writeLog('ERROR', 'File download failed');
-      toast('error', '✕', 'Download failed');
-    }
+    } catch { toast('error', 'Download failed'); }
   };
 
-  // Delete file
-  const handleDeleteFile = async (id) => {
-    try {
-      writeLog('FILE', `Deleting file #${id}...`);
-      await axios.delete(`/files/${id}`);
-      writeLog('FILE', 'File deleted');
-      toast('success', '✓', 'File deleted');
-      loadFiles();
-    } catch (err) {
-      writeLog('ERROR', 'File deletion failed');
-      toast('error', '✕', 'Delete failed');
-    }
+  const deleteFile = async (id) => {
+    try { await axios.delete(`/files/${id}`); toast('success', 'File deleted'); loadFiles(); }
+    catch { toast('error', 'Delete failed'); }
   };
 
-  // Delete account
-  const handleDeleteAccount = async () => {
-    setDeletingAccount(true);
+  const deleteAccount = async () => {
+    setDeleting(true);
     try {
-      writeLog('SYSTEM', 'Initiating account deletion...');
       await axios.delete('/auth/me');
-      writeLog('SYSTEM', 'Account deleted — event propagated via RabbitMQ');
-      toast('info', 'ℹ', 'Account deleted successfully');
+      toast('info', 'Account deleted');
       onLogout();
-    } catch (err) {
-      writeLog('ERROR', 'Account deletion failed');
-      toast('error', '✕', 'Account deletion failed');
-    } finally {
-      setDeletingAccount(false);
-      setShowDeleteModal(false);
-    }
+    } catch { toast('error', 'Deletion failed'); }
+    finally { setDeleting(false); setDeleteModal(false); }
   };
 
-  // Compute stats
-  const totalTasks = tasks.length;
-  const pendingTasks = tasks.filter(t => t.status === 'pending').length;
-  const inProgressTasks = tasks.filter(t => t.status === 'in_progress').length;
-  const doneTasks = tasks.filter(t => t.status === 'done').length;
+  const total = tasks.length;
+  const pending = tasks.filter(t => t.status === 'pending').length;
+  const inProg = tasks.filter(t => t.status === 'in_progress').length;
+  const done = tasks.filter(t => t.status === 'done').length;
+  const initial = session.user?.email?.[0]?.toUpperCase() || '?';
 
-  const formatFileSize = (bytes) => {
-    if (!bytes) return '—';
-    if (bytes < 1024) return bytes + ' B';
-    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
-    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+  const fmtSize = (b) => {
+    if (!b) return '—';
+    if (b < 1024) return b + ' B';
+    if (b < 1048576) return (b / 1024).toFixed(1) + ' KB';
+    return (b / 1048576).toFixed(1) + ' MB';
   };
 
-  const getFileIcon = (filename) => {
-    if (!filename) return '📄';
-    const ext = filename.split('.').pop()?.toLowerCase();
-    const icons = { pdf: '📕', doc: '📘', docx: '📘', xls: '📊', xlsx: '📊', png: '🖼️', jpg: '🖼️', jpeg: '🖼️', gif: '🖼️', zip: '📦', rar: '📦', mp4: '🎬', mp3: '🎵', txt: '📝', js: '⚙️', json: '⚙️' };
-    return icons[ext] || '📄';
-  };
-
-  const emailInitial = session.user?.email?.[0]?.toUpperCase() || '?';
+  const statusLabel = { pending: 'Pending', in_progress: 'In Progress', done: 'Done' };
 
   return (
     <div className="dashboard">
       {/* SIDEBAR */}
       <aside className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
         <div className="sidebar-header">
-          <div className="sidebar-logo">
-            <div className="sidebar-logo-icon">⚡</div>
-            <span className="sidebar-logo-text">Side Kicks</span>
-          </div>
+          <div className="sidebar-brand">Side Kicks</div>
         </div>
-
         <nav className="sidebar-nav">
-          <div className="nav-section-label">Main</div>
-          <button
-            id="nav-tasks"
-            className={`nav-item ${activeView === 'tasks' ? 'active' : ''}`}
-            onClick={() => { setActiveView('tasks'); setSidebarOpen(false); }}
-          >
-            <span className="nav-icon">📋</span>
-            Tasks
+          <div className="nav-section">Overview</div>
+          <button className={`nav-item ${view === 'tasks' ? 'active' : ''}`} onClick={() => { setView('tasks'); setSidebarOpen(false); }}>
+            <span className="nav-icon">{Icons.tasks}</span> Tasks
           </button>
-          <button
-            id="nav-files"
-            className={`nav-item ${activeView === 'files' ? 'active' : ''}`}
-            onClick={() => { setActiveView('files'); setSidebarOpen(false); }}
-          >
-            <span className="nav-icon">📁</span>
-            Files
+          <button className={`nav-item ${view === 'files' ? 'active' : ''}`} onClick={() => { setView('files'); setSidebarOpen(false); }}>
+            <span className="nav-icon">{Icons.files}</span> Files
           </button>
-          <button
-            id="nav-logs"
-            className={`nav-item ${activeView === 'logs' ? 'active' : ''}`}
-            onClick={() => { setActiveView('logs'); setSidebarOpen(false); }}
-          >
-            <span className="nav-icon">🖥️</span>
-            System Logs
+          <button className={`nav-item ${view === 'logs' ? 'active' : ''}`} onClick={() => { setView('logs'); setSidebarOpen(false); }}>
+            <span className="nav-icon">{Icons.logs}</span> Logs
           </button>
-
-          <div className="nav-section-label">Account</div>
-          <button
-            id="nav-delete-account"
-            className="nav-item"
-            onClick={() => setShowDeleteModal(true)}
-            style={{ color: 'var(--danger)' }}
-          >
-            <span className="nav-icon">⚠️</span>
-            Delete Account
+          <div className="nav-section">Settings</div>
+          <button className="nav-item" onClick={() => setDeleteModal(true)} style={{ color: 'var(--red)' }}>
+            <span className="nav-icon">{Icons.warning}</span> Delete Account
           </button>
         </nav>
-
         <div className="sidebar-footer">
           <div className="user-card">
-            <div className="user-avatar">{emailInitial}</div>
-            <div className="user-info">
-              <div className="user-name">{session.user.email}</div>
-              <div className="user-role">Authenticated</div>
-            </div>
+            <div className="user-avatar">{initial}</div>
+            <div className="user-email">{session.user.email}</div>
           </div>
         </div>
       </aside>
 
       {/* MAIN */}
       <div className="main-content">
-        <header className="page-header">
-          <div>
-            <button className="mobile-menu-btn" onClick={() => setSidebarOpen(!sidebarOpen)}>
-              ☰
-            </button>
-            <h1 className="page-title">
-              {activeView === 'tasks' && 'Tasks'}
-              {activeView === 'files' && 'Files'}
-              {activeView === 'logs' && 'System Logs'}
-            </h1>
-            <p className="page-title-sub">
-              {activeView === 'tasks' && 'Manage your tasks across microservices'}
-              {activeView === 'files' && 'Upload, download, and manage files'}
-              {activeView === 'logs' && 'Real-time system activity feed'}
-            </p>
+        <header className="topbar">
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <button className="mobile-toggle" onClick={() => setSidebarOpen(!sidebarOpen)}>{Icons.menu}</button>
+            <span className="topbar-title">
+              {view === 'tasks' && 'Tasks'}
+              {view === 'files' && 'Files'}
+              {view === 'logs' && 'Logs'}
+            </span>
           </div>
-          <div className="page-actions">
-            <button id="logout-btn" className="btn btn-ghost btn-sm" onClick={onLogout}>
-              Sign Out
-            </button>
+          <div className="topbar-actions">
+            <button className="btn btn-ghost btn-sm" onClick={onLogout}>{Icons.logout} Sign out</button>
           </div>
         </header>
 
         <div className="page-body">
-          {/* ========== TASKS VIEW ========== */}
-          {activeView === 'tasks' && (
+          {/* TASKS */}
+          {view === 'tasks' && (
             <>
-              {/* Stats */}
-              <div className="stats-grid">
-                <div className="stat-card">
-                  <div className="stat-icon purple">📋</div>
-                  <div className="stat-content">
-                    <div className="stat-value">{totalTasks}</div>
-                    <div className="stat-label">Total Tasks</div>
-                  </div>
-                </div>
-                <div className="stat-card">
-                  <div className="stat-icon yellow">⏳</div>
-                  <div className="stat-content">
-                    <div className="stat-value">{pendingTasks}</div>
-                    <div className="stat-label">Pending</div>
-                  </div>
-                </div>
-                <div className="stat-card">
-                  <div className="stat-icon green">🔄</div>
-                  <div className="stat-content">
-                    <div className="stat-value">{inProgressTasks}</div>
-                    <div className="stat-label">In Progress</div>
-                  </div>
-                </div>
-                <div className="stat-card">
-                  <div className="stat-icon red">✅</div>
-                  <div className="stat-content">
-                    <div className="stat-value">{doneTasks}</div>
-                    <div className="stat-label">Completed</div>
-                  </div>
-                </div>
+              <div className="stats-row">
+                <div className="stat-cell"><div className="stat-value">{total}</div><div className="stat-label">Total</div></div>
+                <div className="stat-cell"><div className="stat-value">{pending}</div><div className="stat-label">Pending</div></div>
+                <div className="stat-cell"><div className="stat-value">{inProg}</div><div className="stat-label">In Progress</div></div>
+                <div className="stat-cell"><div className="stat-value">{done}</div><div className="stat-label">Completed</div></div>
               </div>
 
-              {/* Create Task Form */}
-              <div className="section">
-                <div className="section-header">
-                  <h2 className="section-title">➕ New Task</h2>
+              <form className="create-form" onSubmit={createTask}>
+                <div className="form-group">
+                  <label className="form-label">Title</label>
+                  <input className="form-input" placeholder="Task name" required value={taskForm.title} onChange={e => setTaskForm({ ...taskForm, title: e.target.value })} />
                 </div>
-                <form className="task-form-inline" onSubmit={handleCreateTask}>
-                  <div className="form-group">
-                    <label className="form-label" htmlFor="task-title">Title</label>
-                    <input
-                      id="task-title"
-                      className="form-input"
-                      type="text"
-                      placeholder="What needs to be done?"
-                      required
-                      value={taskForm.title}
-                      onChange={(e) => setTaskForm({ ...taskForm, title: e.target.value })}
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label className="form-label" htmlFor="task-desc">Description</label>
-                    <input
-                      id="task-desc"
-                      className="form-input"
-                      type="text"
-                      placeholder="Optional description"
-                      value={taskForm.description}
-                      onChange={(e) => setTaskForm({ ...taskForm, description: e.target.value })}
-                    />
-                  </div>
-                  <button
-                    id="create-task-btn"
-                    className="btn btn-primary"
-                    type="submit"
-                    disabled={creatingTask || !taskForm.title.trim()}
-                    style={{ minWidth: '140px', alignSelf: 'flex-end' }}
-                  >
-                    {creatingTask ? <span className="spinner"></span> : 'Create Task'}
-                  </button>
-                </form>
-              </div>
+                <div className="form-group">
+                  <label className="form-label">Description</label>
+                  <input className="form-input" placeholder="Optional" value={taskForm.description} onChange={e => setTaskForm({ ...taskForm, description: e.target.value })} />
+                </div>
+                <button className="btn btn-secondary btn-sm" type="submit" disabled={creating || !taskForm.title.trim()} style={{ height: '34px' }}>
+                  {creating ? <span className="spinner" /> : Icons.plus} Add
+                </button>
+              </form>
 
-              {/* Tasks Grid */}
               <div className="section">
                 <div className="section-header">
-                  <h2 className="section-title">
-                    📋 All Tasks
-                    <span className="section-badge">{totalTasks}</span>
-                  </h2>
+                  <h2 className="section-title">All Tasks<span className="section-count">{total}</span></h2>
                   <button className="btn btn-ghost btn-sm" onClick={loadTasks} disabled={loadingTasks}>
-                    {loadingTasks ? <span className="spinner"></span> : '↻ Refresh'}
+                    {loadingTasks ? <span className="spinner" /> : Icons.refresh} Refresh
                   </button>
                 </div>
-
                 {tasks.length === 0 ? (
-                  <div className="empty-state">
-                    <div className="empty-state-icon">📝</div>
-                    <h3 className="empty-state-title">No tasks yet</h3>
-                    <p className="empty-state-desc">Create your first task above. Tasks are stored in the task microservice with Redis caching.</p>
-                  </div>
+                  <div className="empty"><div className="empty-title">No tasks</div>Create your first task above.</div>
                 ) : (
-                  <div className="tasks-grid">
-                    {tasks.map((t) => (
-                      <div key={t.id} className="task-card">
-                        <div className="task-card-header">
-                          <h3 className="task-card-title">{t.title}</h3>
-                          <button
-                            className="task-delete-btn"
-                            onClick={() => handleDeleteTask(t.id)}
-                            title="Delete task"
-                          >
-                            🗑
-                          </button>
-                        </div>
-                        {t.description && (
-                          <p className="task-card-desc">{t.description}</p>
-                        )}
-                        <div className="task-card-footer">
-                          <select
-                            className="status-select"
-                            value={t.status || 'pending'}
-                            onChange={(e) => handleUpdateStatus(t.id, e.target.value)}
-                          >
-                            <option value="pending">⏳ Pending</option>
-                            <option value="in_progress">🔄 In Progress</option>
-                            <option value="done">✅ Done</option>
-                          </select>
-                          <span className="task-id">#{t.id}</span>
-                        </div>
-                      </div>
-                    ))}
+                  <div className="table-wrap">
+                    <table className="table">
+                      <thead>
+                        <tr><th>Title</th><th>Description</th><th>Status</th><th>ID</th><th style={{ textAlign: 'right' }}>Actions</th></tr>
+                      </thead>
+                      <tbody>
+                        {tasks.map(t => (
+                          <tr key={t.id}>
+                            <td className="task-title">{t.title}</td>
+                            <td className="task-desc">{t.description || '—'}</td>
+                            <td>
+                              <select className="status-select" value={t.status || 'pending'} onChange={e => updateStatus(t.id, e.target.value)}>
+                                <option value="pending">Pending</option>
+                                <option value="in_progress">In Progress</option>
+                                <option value="done">Done</option>
+                              </select>
+                            </td>
+                            <td className="task-id">#{t.id}</td>
+                            <td className="actions-cell">
+                              <button className="btn btn-ghost btn-icon" onClick={() => deleteTask(t.id)} title="Delete">{Icons.trash}</button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
                   </div>
                 )}
               </div>
             </>
           )}
 
-          {/* ========== FILES VIEW ========== */}
-          {activeView === 'files' && (
+          {/* FILES */}
+          {view === 'files' && (
             <>
-              <div className="section">
-                <div className="section-header">
-                  <h2 className="section-title">📤 Upload</h2>
-                </div>
-                <div
-                  className="file-dropzone"
-                  onClick={() => fileInputRef.current?.click()}
-                >
-                  <div className="file-dropzone-icon">
-                    {uploading ? <span className="spinner" style={{ width: 32, height: 32 }}></span> : '📂'}
-                  </div>
-                  <div className="file-dropzone-text">
-                    {uploading ? 'Uploading...' : 'Click to select a file'}
-                  </div>
-                  <div className="file-dropzone-hint">Files are stored via the File microservice</div>
-                </div>
-                <input
-                  type="file"
-                  ref={fileInputRef}
-                  onChange={handleFileUpload}
-                  style={{ display: 'none' }}
-                />
+              <div className="dropzone" onClick={() => fileRef.current?.click()}>
+                {uploading ? <span className="spinner" /> : Icons.upload}
+                <div className="dropzone-label">{uploading ? 'Uploading...' : 'Click to upload a file'}</div>
+                <div className="dropzone-hint">Stored via File microservice</div>
               </div>
+              <input type="file" ref={fileRef} onChange={uploadFile} style={{ display: 'none' }} />
 
               <div className="section">
                 <div className="section-header">
-                  <h2 className="section-title">
-                    📁 Your Files
-                    <span className="section-badge">{files.length}</span>
-                  </h2>
+                  <h2 className="section-title">Files<span className="section-count">{files.length}</span></h2>
                   <button className="btn btn-ghost btn-sm" onClick={loadFiles} disabled={loadingFiles}>
-                    {loadingFiles ? <span className="spinner"></span> : '↻ Refresh'}
+                    {loadingFiles ? <span className="spinner" /> : Icons.refresh} Refresh
                   </button>
                 </div>
-
                 {files.length === 0 ? (
-                  <div className="empty-state">
-                    <div className="empty-state-icon">📂</div>
-                    <h3 className="empty-state-title">No files uploaded</h3>
-                    <p className="empty-state-desc">Upload your first file using the dropzone above.</p>
-                  </div>
+                  <div className="empty"><div className="empty-title">No files</div>Upload your first file above.</div>
                 ) : (
-                  <div className="files-list">
-                    {files.map((f) => (
-                      <div key={f.id} className="file-item">
-                        <span className="file-item-icon">{getFileIcon(f.original_name || f.filename)}</span>
-                        <div className="file-item-info">
-                          <div className="file-item-name">{f.original_name || f.filename}</div>
-                          <div className="file-item-size">{formatFileSize(f.size)}</div>
-                        </div>
-                        <div className="file-item-actions">
-                          <button
-                            className="btn btn-ghost btn-icon"
-                            onClick={() => handleDownloadFile(f.id, f.original_name || f.filename)}
-                            title="Download"
-                          >
-                            ⬇
-                          </button>
-                          <button
-                            className="btn btn-ghost btn-icon"
-                            onClick={() => handleDeleteFile(f.id)}
-                            title="Delete"
-                            style={{ color: 'var(--danger)' }}
-                          >
-                            🗑
-                          </button>
-                        </div>
-                      </div>
-                    ))}
+                  <div className="table-wrap">
+                    <table className="table">
+                      <thead><tr><th>Name</th><th>Size</th><th style={{ textAlign: 'right' }}>Actions</th></tr></thead>
+                      <tbody>
+                        {files.map(f => (
+                          <tr key={f.id}>
+                            <td className="task-title">{f.original_name || f.filename}</td>
+                            <td style={{ color: 'var(--text-3)' }}>{fmtSize(f.size)}</td>
+                            <td className="actions-cell">
+                              <button className="btn btn-ghost btn-icon" onClick={() => downloadFile(f.id, f.original_name || f.filename)} title="Download">{Icons.download}</button>
+                              <button className="btn btn-ghost btn-icon" onClick={() => deleteFile(f.id)} title="Delete" style={{ color: 'var(--red)' }}>{Icons.trash}</button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
                   </div>
                 )}
               </div>
             </>
           )}
 
-          {/* ========== LOGS VIEW ========== */}
-          {activeView === 'logs' && (
-            <div className="section">
-              <div className="section-header">
-                <h2 className="section-title">🖥️ Activity Log</h2>
+          {/* LOGS */}
+          {view === 'logs' && (
+            <div className="terminal">
+              <div className="terminal-bar">
+                <div className="terminal-dots"><span /><span /><span /></div>
+                <span className="terminal-label">system — logs</span>
               </div>
-              <div className="terminal">
-                <div className="terminal-header">
-                  <div className="terminal-dots">
-                    <span className="terminal-dot red"></span>
-                    <span className="terminal-dot yellow"></span>
-                    <span className="terminal-dot green"></span>
+              <div className="terminal-body" style={{ maxHeight: '600px' }}>
+                {logs.length === 0 && <div style={{ color: 'var(--text-4)' }}>Waiting for activity...</div>}
+                {logs.map((l, i) => (
+                  <div key={i} className="log-line">
+                    <span className="log-time">{l.time}</span>{' '}
+                    <span className={`log-tag ${l.tag.toLowerCase()}`}>{l.tag}</span>{' '}
+                    {l.message}
                   </div>
-                  <span className="terminal-title">system_logs — session</span>
-                </div>
-                <div className="terminal-body">
-                  {logs.length === 0 && (
-                    <div className="log-line" style={{ color: 'var(--text-muted)' }}>
-                      Waiting for activity...
-                    </div>
-                  )}
-                  {logs.map((log, i) => (
-                    <div key={i} className="log-line">
-                      <span className="log-time">[{log.time}]</span>{' '}
-                      <span className={`log-tag ${log.tag.toLowerCase()}`}>[{log.tag}]</span>{' '}
-                      {log.message}
-                    </div>
-                  ))}
-                  <div ref={logsEndRef} />
-                </div>
+                ))}
+                <div ref={logsEnd} />
               </div>
             </div>
           )}
 
-          {/* Terminal always shown at bottom for tasks/files views */}
-          {activeView !== 'logs' && (
-            <div className="section" style={{ marginTop: 'auto' }}>
-              <div className="terminal">
-                <div className="terminal-header">
-                  <div className="terminal-dots">
-                    <span className="terminal-dot red"></span>
-                    <span className="terminal-dot yellow"></span>
-                    <span className="terminal-dot green"></span>
+          {/* Mini log bar on non-log views */}
+          {view !== 'logs' && logs.length > 0 && (
+            <div className="terminal" style={{ marginTop: '1.5rem' }}>
+              <div className="terminal-bar">
+                <div className="terminal-dots"><span /><span /><span /></div>
+                <span className="terminal-label">activity</span>
+              </div>
+              <div className="terminal-body" style={{ maxHeight: '120px' }}>
+                {logs.slice(-10).map((l, i) => (
+                  <div key={i} className="log-line">
+                    <span className="log-time">{l.time}</span>{' '}
+                    <span className={`log-tag ${l.tag.toLowerCase()}`}>{l.tag}</span>{' '}
+                    {l.message}
                   </div>
-                  <span className="terminal-title">system_logs</span>
-                </div>
-                <div className="terminal-body" style={{ maxHeight: '160px' }}>
-                  {logs.slice(-15).map((log, i) => (
-                    <div key={i} className="log-line">
-                      <span className="log-time">[{log.time}]</span>{' '}
-                      <span className={`log-tag ${log.tag.toLowerCase()}`}>[{log.tag}]</span>{' '}
-                      {log.message}
-                    </div>
-                  ))}
-                  <div ref={logsEndRef} />
-                </div>
+                ))}
               </div>
             </div>
           )}
         </div>
       </div>
 
-      {/* DELETE ACCOUNT MODAL */}
-      {showDeleteModal && (
-        <div className="modal-overlay" onClick={() => setShowDeleteModal(false)}>
-          <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <h2 className="modal-title">⚠️ Delete Account</h2>
-            <p className="modal-desc">
-              This action is irreversible. Your account, all tasks, and all files will be permanently deleted
-              via distributed event propagation (RabbitMQ).
-            </p>
+      {/* DELETE MODAL */}
+      {deleteModal && (
+        <div className="modal-overlay" onClick={() => setDeleteModal(false)}>
+          <div className="modal" onClick={e => e.stopPropagation()}>
+            <div className="modal-title">Delete Account</div>
+            <div className="modal-desc">This will permanently delete your account, all tasks, and all files. This action cannot be undone.</div>
             <div className="modal-actions">
-              <button className="btn btn-ghost" onClick={() => setShowDeleteModal(false)}>
-                Cancel
-              </button>
-              <button
-                id="confirm-delete-account"
-                className="btn btn-danger"
-                onClick={handleDeleteAccount}
-                disabled={deletingAccount}
-              >
-                {deletingAccount ? <span className="spinner"></span> : 'Delete Everything'}
+              <button className="btn btn-secondary btn-sm" onClick={() => setDeleteModal(false)}>Cancel</button>
+              <button className="btn btn-danger btn-sm" onClick={deleteAccount} disabled={deleting}>
+                {deleting ? <span className="spinner" /> : 'Delete'}
               </button>
             </div>
           </div>
@@ -767,127 +464,73 @@ function Dashboard({ session, onLogout, toast, logs, writeLog }) {
   );
 }
 
-// ============================================================
-// APP ROOT
-// ============================================================
+/* ================================================================
+   APP ROOT
+   ================================================================ */
 function App() {
   const [session, setSession] = useState(() => {
-    try {
-      const saved = localStorage.getItem('sk_session');
-      return saved ? JSON.parse(saved) : { token: null, refreshToken: null, user: null };
-    } catch {
-      return { token: null, refreshToken: null, user: null };
-    }
+    try { const s = localStorage.getItem('sk_session'); return s ? JSON.parse(s) : { token: null, refreshToken: null, user: null }; }
+    catch { return { token: null, refreshToken: null, user: null }; }
   });
-
   const [toasts, setToasts] = useState([]);
   const [logs, setLogs] = useState([]);
 
-  // Persist session
   useEffect(() => {
-    if (session.token) {
-      localStorage.setItem('sk_session', JSON.stringify(session));
-    } else {
-      localStorage.removeItem('sk_session');
-    }
+    if (session.token) localStorage.setItem('sk_session', JSON.stringify(session));
+    else localStorage.removeItem('sk_session');
   }, [session]);
 
-  // Axios interceptor for token
   useEffect(() => {
-    const reqInterceptor = axios.interceptors.request.use((config) => {
-      if (session.token) {
-        config.headers.Authorization = `Bearer ${session.token}`;
-      }
-      return config;
+    const req = axios.interceptors.request.use(c => {
+      if (session.token) c.headers.Authorization = `Bearer ${session.token}`;
+      return c;
     });
-
-    const resInterceptor = axios.interceptors.response.use(
-      (response) => response,
-      async (error) => {
-        const originalRequest = error.config;
-
-        // If 401 and we have a refresh token, try to refresh
-        if (error.response?.status === 401 && session.refreshToken && !originalRequest._retry) {
-          originalRequest._retry = true;
-          try {
-            const res = await axios.post('/auth/refresh', {
-              refreshToken: session.refreshToken,
-            });
-            const newToken = res.data.data.token;
-            setSession(prev => ({ ...prev, token: newToken }));
-            originalRequest.headers.Authorization = `Bearer ${newToken}`;
-            return axios(originalRequest);
-          } catch (refreshErr) {
-            // Refresh failed — log out
-            setSession({ token: null, refreshToken: null, user: null });
-            return Promise.reject(refreshErr);
-          }
-        }
-        return Promise.reject(error);
+    const res = axios.interceptors.response.use(r => r, async err => {
+      const orig = err.config;
+      if (err.response?.status === 401 && session.refreshToken && !orig._retry) {
+        orig._retry = true;
+        try {
+          const r = await axios.post('/auth/refresh', { refreshToken: session.refreshToken });
+          const t = r.data.data.token;
+          setSession(p => ({ ...p, token: t }));
+          orig.headers.Authorization = `Bearer ${t}`;
+          return axios(orig);
+        } catch { setSession({ token: null, refreshToken: null, user: null }); }
       }
-    );
-
-    return () => {
-      axios.interceptors.request.eject(reqInterceptor);
-      axios.interceptors.response.eject(resInterceptor);
-    };
+      return Promise.reject(err);
+    });
+    return () => { axios.interceptors.request.eject(req); axios.interceptors.response.eject(res); };
   }, [session.token, session.refreshToken]);
 
-  // Toast helper
-  const showToast = useCallback((type, icon, message) => {
+  const showToast = useCallback((type, message) => {
     const id = Date.now() + Math.random();
-    setToasts(prev => [...prev, { id, type, icon, message }]);
-    setTimeout(() => {
-      setToasts(prev => prev.filter(t => t.id !== id));
-    }, 4000);
+    setToasts(p => [...p, { id, type, message }]);
+    setTimeout(() => setToasts(p => p.filter(t => t.id !== id)), 3500);
   }, []);
 
-  const dismissToast = useCallback((id) => {
-    setToasts(prev => prev.filter(t => t.id !== id));
-  }, []);
+  const dismissToast = useCallback(id => setToasts(p => p.filter(t => t.id !== id)), []);
 
-  // Log helper
   const writeLog = useCallback((tag, message) => {
-    setLogs(prev => [
-      ...prev,
-      {
-        time: new Date().toLocaleTimeString(),
-        tag,
-        message,
-      },
-    ]);
+    setLogs(p => [...p, { time: new Date().toLocaleTimeString('en-US', { hour12: false }), tag, message }]);
   }, []);
 
-  // Login handler
   const handleLogin = (data, email) => {
-    setSession({
-      token: data.token,
-      refreshToken: data.refreshToken || null,
-      user: { email },
-    });
+    setSession({ token: data.token, refreshToken: data.refreshToken || null, user: { email } });
     writeLog('AUTH', `Authenticated as ${email}`);
   };
 
-  // Logout handler
   const handleLogout = () => {
     setSession({ token: null, refreshToken: null, user: null });
     setLogs([]);
-    showToast('info', 'ℹ', 'Signed out');
+    showToast('info', 'Signed out');
   };
 
   return (
     <>
-      {!session.token ? (
-        <AuthPage onLogin={handleLogin} toast={showToast} />
-      ) : (
-        <Dashboard
-          session={session}
-          onLogout={handleLogout}
-          toast={showToast}
-          logs={logs}
-          writeLog={writeLog}
-        />
-      )}
+      {!session.token
+        ? <AuthPage onLogin={handleLogin} toast={showToast} />
+        : <Dashboard session={session} onLogout={handleLogout} toast={showToast} logs={logs} writeLog={writeLog} />
+      }
       <ToastContainer toasts={toasts} onDismiss={dismissToast} />
     </>
   );

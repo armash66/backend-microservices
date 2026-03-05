@@ -90,12 +90,11 @@ app.get('/metrics', async (req, res) => {
 app.get('/health/live', (req, res) => res.status(200).json({ status: 'live' }));
 app.get('/health/ready', (req, res) => res.status(200).json({ status: 'ready' }));
 
-// Centralized Error Handler
 app.use((err, req, res, next) => {
     logger.error({ err }, 'Gateway Error');
     res.status(err.status || 500).json({
-        error: 'API Gateway: Internal Server Error',
-        message: process.env.NODE_ENV === 'development' ? err.message : undefined
+        error: 'API Gateway Error',
+        message: err.message
     });
 });
 

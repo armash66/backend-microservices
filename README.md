@@ -78,19 +78,18 @@ A production-grade microservices architecture built with Node.js, featuring dist
 - [Docker Desktop](https://www.docker.com/products/docker-desktop/)
 - [Node.js 18+](https://nodejs.org/)
 
-### Quick Start
-```bash
-# Clone the repository
-git clone https://github.com/armash66/backend-microservices.git
-cd backend-microservices
+### Quick Start (Bare Metal)
+```powershell
+# 1. Install all dependencies
+npm run install:all
 
-# Start all services
-docker compose up --build -d
-
-# Start the frontend
-cd frontend
-npm install
+# 2. Start everything (API, Auth, Tasks, Files, Frontend)
 npm run dev
+```
+
+### Quick Start (Docker)
+```bash
+docker compose up --build -d
 ```
 
 ### Access Points (Development)

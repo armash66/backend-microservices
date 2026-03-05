@@ -1,0 +1,19 @@
+{
+    "name": "side-kicks-microservices",
+    "version": "1.0.0",
+    "description": "Root management for Side Kicks microservices",
+    "scripts": {
+        "install:all": "npm install && cd api-gateway && npm install && cd ../auth-service && npm install && cd ../task-service && npm install && cd ../file-service && npm install && cd ../frontend && npm install",
+        "db-setup": "node auth-service/src/utils/setup-db.js",
+        "migrate": "concurrently \"npm run migrate up --prefix auth-service\" \"npm run migrate up --prefix task-service\" \"npm run migrate up --prefix file-service\"",
+        "setup": "npm run db-setup && npm run migrate",
+        "dev:backend": "concurrently \"npm run dev --prefix api-gateway\" \"npm run dev --prefix auth-service\" \"npm run dev --prefix task-service\" \"npm run dev --prefix file-service\"",
+        "dev:frontend": "npm run dev --prefix frontend",
+        "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+        "start:backend": "concurrently \"npm start --prefix api-gateway\" \"npm start --prefix auth-service\" \"npm start --prefix task-service\" \"npm start --prefix file-service\"",
+        "start": "concurrently \"npm run start:backend\" \"npm run dev:frontend\""
+    },
+    "devDependencies": {
+        "concurrently": "^9.2.1"
+    }
+}

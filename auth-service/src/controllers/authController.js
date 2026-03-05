@@ -30,7 +30,7 @@ const register = async (req, res) => {
 
     } catch (err) {
         logger.error({ err }, 'Registration Error');
-        return res_helper.error(res, 500, 'Internal server error');
+        return res_helper.error(res, 500, err.message || 'Internal server error');
     }
 };
 

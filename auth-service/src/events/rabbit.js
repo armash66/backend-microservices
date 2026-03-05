@@ -10,14 +10,11 @@ const connectRabbitMQ = async () => {
         const connection = await amqp.connect(rabbitUrl);
         channel = await connection.createChannel();
 
-        // Assert a durable exchange using the topic pattern
         await channel.assertExchange('user.events', 'topic', { durable: true });
-
-        console.log('Connected to RabbitMQ user.events exchange');
+        logger.info('Connected to RabbitMQ user.events exchange');
     } catch (error) {
-        console.error('RabbitMQ Connection Error:', error);
-        // Do not crash the app immediately if Rabbit isn't up, but let it attempt to connect
-        setTimeout(connectRabbitMQ, 5000);
+        logger.warn('RabbitMQ not available at startup. Retrying in 10s... (Account deletion cascade will be disabled until connected)');
+        setTimeout(connectRabbitMQ, 10000);
     }
 };
 
